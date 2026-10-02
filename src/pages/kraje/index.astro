@@ -1,0 +1,339 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import CountryCard from '../../components/CountryCard.astro';
+import Icon from '../../components/Icon.astro';
+import { continents, site } from '../../data/meta';
+import { getVisits, countries, plural } from '../../lib/data';
+import { ogFromPhoto } from '../../lib/og';
+
+const visits = await getVisits();
+const visitedCodes = new Set(visits.map((v) => v.country.code));
+const left = countries.filter((c) => !visitedCodes.has(c.code));
+const pick = ['ISL', 'MNG', 'PER'];
+const photos = pick.map((code) => visits.find((v) => v.country.code === code)?.cover).filter((p) => p !== undefined);
+const og = await ogFromPhoto(photos[0]);
+---
+
+<Base title="Wszystkie odwiedzone kraje" description={`${visits.length} z ${site.total} krajów świata w jednym miejscu: relacje, zdjęcia i oceny. Filtruj po kontynencie, szukaj po nazwie i sortuj po dacie lub ocenie.`} image={og}>
+  <PageHead
+    title="Kraje"
+    note={`${visits.length} odhaczone, ${left.length} przede mną`}
+    lead="Wszystkie kraje, w których zostawiłem ślad butów. Od najświeższej pieczątki po pierwsze wyjazdy z plecakiem."
+    photos={photos}
+  />
+
+  <section class="wrap list" data-list>
+    <div class="toolbar" role="search">
+      <div class="filters" role="group" aria-label="Kontynent">
+        <button class="chip is-active" type="button" data-filter="all" aria-pressed="true">Wszystkie</button>
+        {continents.map((c) => (
+          <button class="chip" type="button" data-filter={c.key} aria-pressed="false">{c.name}</button>
+        ))}
+      </div>
+      <div class="toolbar-right">
+        <label class="search">
+          <Icon name="search" size={18} />
+          <span class="sr-only">Szukaj kraju</span>
+          <input type="search" placeholder="Szukaj kraju" data-search autocomplete="off" />
+        </label>
+        <label class="sort">
+          <span class="sr-only">Sortowanie</span>
+          <select data-sort>
+            <option value="date">Najnowsze</option>
+            <option value="name">Alfabetycznie</option>
+            <option value="rating">Najwyżej oceniane</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <p class="list-count" aria-live="polite" data-count-label>{visits.length} {plural(visits.length, 'kraj', 'kraje', 'krajów')}</p>
+
+    <div class="grid" data-grid>
+      {visits.map((v) => (
+        <div class="grid-item" data-continent={v.country.continent} data-name={v.name.toLowerCase()} data-date={v.visited.getTime()} data-rating={v.rating}>
+          <CountryCard visit={v} ratio="4 / 5" sizes="(max-width: 600px) 92vw, (max-width: 1000px) 46vw, 23vw" />
+        </div>
+      ))}
+    </div>
+
+    <div class="empty" data-empty hidden>
+      <p class="hand">tu jeszcze nie byłem</p>
+      <p>Nie ma takiego kraju na liście odwiedzonych. Może czeka w sekcji poniżej?</p>
+    </div>
+  </section>
+
+  <section class="wrap ahead section" aria-labelledby="ahead-title">
+    <h2 class="display h-lg" id="ahead-title" data-split>Przede mną</h2>
+    <p class="ahead-lead" data-reveal>{left.length} krajów, które wciąż czekają na pieczątkę.</p>
+    <div class="ahead-groups">
+      {continents.map((c) => {
+        const list = left.filter((x) => x.continent === c.key);
+        return list.length > 0 && (
+          <div class="ahead-group" data-reveal>
+            <h3>{c.name} <span>{list.length}</span></h3>
+            <ul>
+              {list.map((x) => <li>{x.name}</li>)}
+            </ul>
+          </div>
+        );
+      })}
+    </div>
+  </section>
+</Base>
+
+<style>
+  .toolbar {
+    position: sticky;
+    top: 0;
+    z-index: 4;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px 24px;
+    padding-block: 14px;
+    background: rgb(13 17 16 / 0.86);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .filters {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+  }
+
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+
+  .toolbar-right {
+    display: flex;
+    gap: 10px;
+  }
+
+  .search {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 40px;
+    padding-inline: 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--muted);
+  }
+
+  .search:focus-within {
+    border-color: var(--text);
+  }
+
+  .search input {
+    width: 170px;
+    border: 0;
+    outline: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;
+  }
+
+  .search input::placeholder {
+    color: var(--muted);
+  }
+
+  .sort select {
+    height: 40px;
+    padding: 0 36px 0 16px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    background: var(--bg) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 256 256' fill='%23a3aca6'%3E%3Cpath d='M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z'/%3E%3C/svg%3E") no-repeat right 12px center / 16px;
+    color: var(--text);
+    font: inherit;
+    font-size: 15px;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .list-count {
+    margin: 28px 0 24px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(32px, 4vw, 56px) clamp(16px, 2vw, 24px);
+  }
+
+  .grid-item[hidden] {
+    display: none;
+  }
+
+  .empty {
+    padding: 48px 0;
+    color: var(--muted);
+  }
+
+  .empty .hand {
+    font-size: 30px;
+    color: var(--accent);
+  }
+
+  .ahead {
+    border-top: 1px solid var(--line);
+    margin-top: clamp(80px, 10vw, 140px);
+  }
+
+  .ahead-lead {
+    margin-top: 16px;
+    color: var(--muted);
+  }
+
+  .ahead-groups {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 48px 32px;
+    margin-top: 56px;
+  }
+
+  .ahead-group h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 14px;
+    font-size: 22px;
+    font-weight: 700;
+    font-stretch: 85%;
+  }
+
+  .ahead-group h3 span {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--accent);
+  }
+
+  .ahead-group ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .ahead-group li {
+    padding: 4px 10px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 999px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 1100px) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 860px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .ahead-groups {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .toolbar-right {
+      width: 100%;
+    }
+
+    .search {
+      flex: 1;
+    }
+
+    .search input {
+      width: 100%;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .ahead-groups {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+
+<script>
+  import { ScrollTrigger } from '../../scripts/motion';
+
+  const root = document.querySelector<HTMLElement>('[data-list]');
+  if (root) {
+    const grid = root.querySelector<HTMLElement>('[data-grid]')!;
+    const items = [...grid.querySelectorAll<HTMLElement>('.grid-item')];
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('[data-filter]')];
+    const search = root.querySelector<HTMLInputElement>('[data-search]')!;
+    const sort = root.querySelector<HTMLSelectElement>('[data-sort]')!;
+    const countLabel = root.querySelector<HTMLElement>('[data-count-label]')!;
+    const empty = root.querySelector<HTMLElement>('[data-empty]')!;
+    const params = new URLSearchParams(location.search);
+    let filter = params.get('kontynent') ?? 'all';
+
+    const plural = (n: number) => {
+      if (n === 1) return 'kraj';
+      const d = n % 10;
+      const t = n % 100;
+      return d >= 2 && d <= 4 && (t < 12 || t > 14) ? 'kraje' : 'krajów';
+    };
+    const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
+
+    const apply = () => {
+      const q = norm(search.value.trim());
+      let shown = 0;
+      items.forEach((el) => {
+        const ok = (filter === 'all' || el.dataset.continent === filter) && (!q || norm(el.dataset.name ?? '').includes(q));
+        el.hidden = !ok;
+        if (ok) shown++;
+        if (ok) el.querySelector<HTMLElement>('[data-reveal]')?.style.setProperty('opacity', '1');
+        if (ok) el.querySelector<HTMLElement>('[data-reveal]')?.style.setProperty('transform', 'none');
+      });
+      const key = sort.value;
+      const sorted = items.slice().sort((a, b) => {
+        if (key === 'name') return (a.dataset.name ?? '').localeCompare(b.dataset.name ?? '', 'pl');
+        if (key === 'rating') return Number(b.dataset.rating) - Number(a.dataset.rating) || Number(b.dataset.date) - Number(a.dataset.date);
+        return Number(b.dataset.date) - Number(a.dataset.date);
+      });
+      sorted.forEach((el) => grid.appendChild(el));
+      buttons.forEach((b) => {
+        const on = b.dataset.filter === filter;
+        b.classList.toggle('is-active', on);
+        b.setAttribute('aria-pressed', String(on));
+      });
+      countLabel.textContent = `${shown} ${plural(shown)}`;
+      empty.hidden = shown > 0;
+      ScrollTrigger.refresh();
+    };
+
+    buttons.forEach((b) =>
+      b.addEventListener('click', () => {
+        filter = b.dataset.filter ?? 'all';
+        const url = new URL(location.href);
+        if (filter === 'all') url.searchParams.delete('kontynent');
+        else url.searchParams.set('kontynent', filter);
+        history.replaceState(null, '', url);
+        apply();
+      }),
+    );
+    search.addEventListener('input', apply);
+    sort.addEventListener('change', apply);
+    if (filter !== 'all') apply();
+  }
+</script>

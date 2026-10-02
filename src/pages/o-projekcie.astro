@@ -1,0 +1,156 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { site } from '../data/meta';
+import { getVisits, stats, number } from '../lib/data';
+import { ogFromPhoto } from '../lib/og';
+
+const visits = await getVisits();
+const s = stats(visits);
+const photos = ['ALB', 'NPL', 'BOL'].map((code) => visits.find((v) => v.country.code === code)?.cover).filter((p) => p !== undefined);
+const og = await ogFromPhoto(photos[0]);
+const rules = [
+  { title: 'Lista ma 195 pozycji', text: '193 państwa członkowskie ONZ oraz dwa państwa obserwatorzy: Watykan i Palestyna. Terytoria zależne, jak Grenlandia czy Portoryko, są miłym bonusem, ale nie trafiają do licznika.' },
+  { title: 'Przesiadka się nie liczy', text: 'Kraj trafia na listę dopiero wtedy, gdy wyjdę z lotniska i spędzę w nim co najmniej jedną noc. Wyjątek robię dla mikropaństw, w których cały dzień to i tak sporo.' },
+  { title: 'Liczy się pierwsza wizyta', text: 'Do wielu miejsc wracam, ale na mapie zostaje data pierwszego przyjazdu. Kolejne wizyty dopisuję w relacjach.' },
+  { title: 'Bez pośpiechu', text: 'Nie ścigam się z rekordzistami. Wolę dwa tygodnie w jednym kraju niż pięć krajów w tydzień. Dlatego ten projekt potrwa jeszcze trochę.' },
+];
+---
+
+<Base title="O projekcie" description="Skąd wziął się Projekt 195, jakie są zasady liczenia krajów i jak powstaje ten blog o próbie odwiedzenia całego świata." image={og}>
+  <PageHead
+    title="O projekcie"
+    note="jeden paszport, trzeci z kolei"
+    lead={`Od ${s.since} roku zbieram pieczątki z każdego kraju świata. Na razie ${s.count} z ${site.total}. Ta strona jest dziennikiem tej podróży.`}
+    photos={photos}
+  />
+
+  <section class="wrap story">
+    <div class="story-text">
+      <h2 class="h-md" data-split>Jak to się zaczęło</h2>
+      <p data-reveal>Lipiec 2012, Budapeszt, Most Łańcuchowy o północy. Stałem z biletem powrotnym w kieszeni i pomyślałem, że skoro w pół roku udało się zobaczyć cztery kraje, to może dałoby się zobaczyć wszystkie. Brzmiało to absurdalnie i chyba właśnie dlatego zostało w głowie.</p>
+      <p data-reveal>Następnego dnia narysowałem w zeszycie tabelę na 195 wierszy. Zeszyt mam do dziś, choć tabela przeniosła się na tę stronę. Podróżuję z plecakiem, głównie lokalnym transportem, a pracuję zdalnie tam, gdzie akurat jest prąd i internet.</p>
+    </div>
+    <dl class="story-stats" data-reveal>
+      <div><dt>krajów na liście</dt><dd>{s.count}</dd></div>
+      <div><dt>dni w drodze</dt><dd>{number(s.days)}</dd></div>
+      <div><dt>km w linii prostej</dt><dd>{number(s.km)}</dd></div>
+    </dl>
+  </section>
+
+  <section class="wrap rules section" aria-labelledby="rules-title">
+    <h2 class="display h-lg" id="rules-title" data-split>Zasady gry</h2>
+    <ol class="rules-list">
+      {rules.map((r) => (
+        <li data-reveal>
+          <h3>{r.title}</h3>
+          <p>{r.text}</p>
+        </li>
+      ))}
+    </ol>
+  </section>
+
+</Base>
+
+<style>
+  .story {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+    gap: clamp(40px, 8vw, 120px);
+    padding-bottom: clamp(40px, 6vw, 80px);
+  }
+
+  .story-text {
+    display: grid;
+    gap: 20px;
+    max-width: 62ch;
+    font-size: 18px;
+    color: #d6d3cb;
+  }
+
+  .story-text h2 {
+    color: var(--text);
+    margin-bottom: 8px;
+  }
+
+  .story-stats {
+    display: grid;
+    align-content: start;
+    gap: 28px;
+    margin: 0;
+  }
+
+  .story-stats div {
+    display: flex;
+    flex-direction: column-reverse;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .story-stats dd {
+    margin: 0;
+    font-size: clamp(3rem, 5vw, 4.6rem);
+    font-weight: 800;
+    font-stretch: 75%;
+    line-height: 0.95;
+  }
+
+  .story-stats div:first-child dd {
+    color: var(--accent);
+  }
+
+  .story-stats dt {
+    color: var(--muted);
+    font-size: 14px;
+  }
+
+  .rules-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(32px, 4vw, 56px) clamp(32px, 6vw, 96px);
+    margin-top: clamp(40px, 5vw, 72px);
+    counter-reset: rule;
+  }
+
+  .rules-list li {
+    counter-increment: rule;
+    padding-top: 22px;
+    border-top: 1px solid var(--line);
+  }
+
+  .rules-list h3 {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 10px;
+    font-size: clamp(22px, 2.2vw, 30px);
+    font-weight: 700;
+    font-stretch: 85%;
+    line-height: 1.1;
+  }
+
+  .rules-list h3::before {
+    content: counter(rule);
+    font-family: var(--font-hand);
+    font-weight: 400;
+    font-size: 0.9em;
+    color: var(--accent);
+  }
+
+  .rules-list p {
+    color: var(--muted);
+    max-width: 52ch;
+  }
+
+  .rules {
+    padding-bottom: clamp(80px, 10vw, 140px);
+  }
+
+  @media (max-width: 860px) {
+    .story,
+    .rules-list {
+      grid-template-columns: 1fr;
+    }
+
+  }
+</style>

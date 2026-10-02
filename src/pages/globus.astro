@@ -1,0 +1,683 @@
+---
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { continents, site } from '../data/meta';
+import { getVisits } from '../lib/data';
+
+const visits = await getVisits();
+const groups = continents.map((c) => ({
+  ...c,
+  list: visits.filter((v) => v.country.continent === c.key).sort((a, b) => a.name.localeCompare(b.name, 'pl')),
+}));
+---
+
+<Base title="Globus odwiedzonych krajów" description={`Interaktywny globus 3D z ${visits.length} odwiedzonymi krajami na zdjęciach satelitarnych NASA. Kręć, przybliżaj i klikaj w pinezki, żeby przejść do relacji.`} image={{ src: '/og/globus.jpg', alt: 'Globus z odwiedzonymi krajami zaznaczonymi na pomarańczowo' }}>
+  <Fragment slot="head">
+    <link rel="preload" as="fetch" href="/data/earth.json" crossorigin />
+  </Fragment>
+  <section class="earth-page" aria-label="Interaktywny globus">
+    <aside class="panel">
+      <h1 class="display panel-title">Globus</h1>
+      <p class="panel-note hand">kręć, przybliżaj, klikaj w pinezki</p>
+      <p class="panel-count"><strong>{visits.length}</strong> z {site.total} krajów odhaczonych</p>
+
+      <div class="search" data-search-box>
+        <label class="search-field">
+          <Icon name="search" size={18} />
+          <span class="sr-only">Znajdź kraj na globusie</span>
+          <input type="search" placeholder="Znajdź kraj" autocomplete="off" data-earth-search aria-controls="earth-results" />
+        </label>
+        <ul class="search-results" id="earth-results" data-earth-results hidden></ul>
+      </div>
+
+      <ul class="legend" aria-label="Legenda">
+        <li><span class="lg-pin" aria-hidden="true"></span>pinezka w odwiedzonym kraju</li>
+        <li><span class="lg-fill" aria-hidden="true"></span>kraj odhaczony</li>
+        <li><span class="lg-land" aria-hidden="true"></span>jeszcze przede mną</li>
+      </ul>
+
+      <div class="groups" data-lenis-prevent>
+        {groups.map((g) => (
+          <details class="group">
+            <summary>
+              <span>{g.name}</span>
+              <span class="group-count">{g.list.length}</span>
+            </summary>
+            <ul>
+              {g.list.map((v) => (
+                <li><button type="button" data-fly={v.country.ccn3}>{v.name}</button></li>
+              ))}
+            </ul>
+          </details>
+        ))}
+      </div>
+    </aside>
+
+    <div class="stage" data-earth data-lenis-prevent>
+      <canvas class="stage-canvas" data-earth-gl aria-hidden="true"></canvas>
+      <canvas class="stage-canvas stage-pins" data-earth-pins role="img" aria-label={`Globus z ${visits.length} odwiedzonymi krajami zaznaczonymi pinezkami`}></canvas>
+      <div class="tip" data-earth-tip hidden>
+        <strong data-tip-name></strong>
+        <span data-tip-status></span>
+      </div>
+      <p class="loading hand" data-earth-loading>rozkręcam Ziemię…</p>
+      <p class="fallback" data-earth-fallback hidden>Twoja przeglądarka nie obsługuje WebGL. Listę krajów znajdziesz w zakładce <a href="/kraje/">Kraje</a>.</p>
+
+      <div class="controls" role="group" aria-label="Sterowanie globusem">
+        <button type="button" data-earth-zoom="in" aria-label="Przybliż">+</button>
+        <button type="button" data-earth-zoom="out" aria-label="Oddal">&minus;</button>
+        <button type="button" data-earth-spin aria-pressed="true">Obrót</button>
+        <button type="button" data-earth-reset>Cała Ziemia</button>
+      </div>
+
+      <article class="card" data-earth-card hidden aria-live="polite">
+        <button type="button" class="card-close" data-card-close aria-label="Zamknij"><Icon name="close" size={18} /></button>
+        <img class="card-img" data-card-img alt="" width="400" height="300" hidden />
+        <div class="card-body">
+          <p class="card-meta" data-card-meta></p>
+          <h2 class="card-name" data-card-name></h2>
+          <p class="card-ex" data-card-ex></p>
+          <a class="btn btn--light card-link" data-card-link href="/kraje/">Czytaj relację <Icon name="arrowRight" /></a>
+        </div>
+      </article>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .earth-page {
+    display: grid;
+    grid-template-columns: minmax(300px, 380px) 1fr;
+    height: 100svh;
+    min-height: 620px;
+    padding-top: var(--header-h);
+    background: radial-gradient(ellipse 60% 70% at 62% 52%, #142029 0%, var(--bg) 70%);
+  }
+
+  .panel {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    min-height: 0;
+    padding: clamp(20px, 3vw, 40px) var(--gutter) 24px;
+    border-right: 1px solid var(--line);
+  }
+
+  .panel-title {
+    font-size: clamp(3rem, 6vw, 5.6rem);
+  }
+
+  .panel-note {
+    margin-top: -8px;
+    font-size: 22px;
+    color: var(--accent);
+    transform: rotate(-2deg);
+    transform-origin: left;
+  }
+
+  .panel-count {
+    color: var(--muted);
+  }
+
+  .panel-count strong {
+    font-size: 22px;
+    color: var(--text);
+  }
+
+  .search {
+    position: relative;
+  }
+
+  .search-field {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding-inline: 14px;
+    border: 1px solid var(--line-strong);
+    border-radius: 999px;
+    color: var(--muted);
+  }
+
+  .search-field:focus-within {
+    border-color: var(--text);
+  }
+
+  .search-field input {
+    flex: 1;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 16px;
+  }
+
+  .search-field input::placeholder {
+    color: var(--muted);
+  }
+
+  .search-results {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 6px);
+    z-index: 5;
+    padding: 6px;
+    border-radius: var(--radius);
+    background: var(--bg-2);
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 20px 50px rgb(0 0 0 / 0.4);
+  }
+
+  .search-results[hidden] {
+    display: none;
+  }
+
+  .search-results :global(button) {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    width: 100%;
+    padding: 9px 12px;
+    border-radius: 8px;
+    text-align: left;
+    font-size: 15px;
+  }
+
+  .search-results :global(button:hover),
+  .search-results :global(button:focus-visible) {
+    background: var(--bg-3);
+  }
+
+  .search-results :global(small) {
+    color: var(--muted);
+  }
+
+  .search-results :global(small.is-visited) {
+    color: var(--accent);
+  }
+
+  .legend {
+    display: grid;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .lg-pin {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 30%, #fff 0 12%, var(--accent) 30%, #8a2c10 100%);
+    box-shadow: 1px 2px 2px rgb(0 0 0 / 0.5);
+  }
+
+  .lg-fill,
+  .lg-land {
+    width: 18px;
+    height: 10px;
+    border-radius: 2px;
+    background: #b5684a;
+  }
+
+  .lg-land {
+    background: #6b7a55;
+  }
+
+  .groups {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    margin-inline: -8px;
+    padding-inline: 8px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-strong) transparent;
+  }
+
+  .group {
+    border-top: 1px solid var(--line);
+  }
+
+  .group summary {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    font-weight: 700;
+    font-stretch: 85%;
+    font-size: 17px;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .group summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .group-count {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--accent);
+  }
+
+  .group ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    padding-bottom: 14px;
+  }
+
+  .group button {
+    padding: 5px 11px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    font-size: 13px;
+    transition: background-color 0.25s, color 0.25s, border-color 0.25s;
+  }
+
+  .group button:hover,
+  .group button[aria-current='true'] {
+    background: var(--paper);
+    color: var(--paper-ink);
+    border-color: var(--paper);
+  }
+
+  .stage {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .stage-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: opacity 1.2s var(--ease-out);
+  }
+
+  .stage:global(.is-ready) .stage-canvas {
+    opacity: 1;
+  }
+
+  .stage-pins {
+    cursor: grab;
+    touch-action: none;
+  }
+
+  .tip {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 3;
+    display: grid;
+    gap: 2px;
+    padding: 9px 13px;
+    border-radius: 10px;
+    background: var(--paper);
+    color: var(--paper-ink);
+    pointer-events: none;
+    white-space: nowrap;
+    box-shadow: 0 12px 30px rgb(0 0 0 / 0.35);
+  }
+
+  .tip[hidden] {
+    display: none;
+  }
+
+  .tip strong {
+    font-size: 15px;
+  }
+
+  .tip span {
+    font-size: 12px;
+    color: #4d5752;
+  }
+
+  .tip[data-visited='true'] span {
+    color: var(--accent-ink);
+  }
+
+  .loading {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    font-size: 26px;
+    color: var(--muted);
+    pointer-events: none;
+    transition: opacity 0.6s;
+  }
+
+  .stage:global(.is-ready) .loading {
+    opacity: 0;
+  }
+
+  .fallback {
+    position: absolute;
+    inset: auto 24px 50% 24px;
+    text-align: center;
+    color: var(--muted);
+  }
+
+  .fallback a {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .controls {
+    position: absolute;
+    right: 20px;
+    bottom: 20px;
+    z-index: 3;
+    display: flex;
+    gap: 6px;
+  }
+
+  .controls button {
+    min-width: 40px;
+    height: 40px;
+    padding-inline: 12px;
+    border-radius: 999px;
+    background: rgb(13 17 16 / 0.7);
+    border: 1px solid var(--line-strong);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 14px;
+    font-weight: 600;
+    transition: background-color 0.25s, color 0.25s;
+  }
+
+  .controls button:hover {
+    border-color: var(--text);
+  }
+
+  .controls button[aria-pressed='true'] {
+    background: var(--paper);
+    color: var(--paper-ink);
+  }
+
+  .card {
+    position: absolute;
+    left: 24px;
+    bottom: 24px;
+    z-index: 4;
+    width: min(340px, calc(100% - 48px));
+    overflow: hidden;
+    border-radius: var(--radius-lg);
+    background: var(--paper);
+    color: var(--paper-ink);
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.5);
+  }
+
+  .card[hidden] {
+    display: none;
+  }
+
+  .card-img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+  }
+
+  .card-img[hidden] {
+    display: none;
+  }
+
+  .card-close {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--paper);
+    color: var(--paper-ink);
+    box-shadow: 0 4px 12px rgb(0 0 0 / 0.25);
+  }
+
+  .card-body {
+    display: grid;
+    gap: 6px;
+    padding: 18px 20px 20px;
+  }
+
+  .card-meta {
+    font-size: 13px;
+    color: var(--accent-ink);
+    font-weight: 600;
+  }
+
+  .card-name {
+    font-size: 30px;
+    font-weight: 800;
+    font-stretch: 78%;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .card-ex {
+    font-size: 14px;
+    line-height: 1.5;
+    color: #3f4844;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-ex:empty {
+    display: none;
+  }
+
+  .card-link {
+    justify-self: start;
+    margin-top: 8px;
+    background: var(--paper-ink);
+    color: var(--paper);
+  }
+
+  .card-link:hover {
+    background: var(--accent);
+    color: var(--paper-ink);
+  }
+
+  .card-link[hidden] {
+    display: none;
+  }
+
+  @media (max-width: 900px) {
+    .earth-page {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto 64svh;
+      height: auto;
+    }
+
+    .panel {
+      order: 2;
+      border-right: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .stage {
+      order: 1;
+      height: 64svh;
+    }
+
+    .groups {
+      overflow: visible;
+    }
+
+    .controls {
+      right: 12px;
+      bottom: 12px;
+    }
+
+    .controls [data-earth-reset] {
+      display: none;
+    }
+
+    .card {
+      left: 12px;
+      right: 12px;
+      bottom: 64px;
+      width: auto;
+      display: grid;
+      grid-template-columns: 110px 1fr;
+    }
+
+    .card[hidden] {
+      display: none;
+    }
+
+    .card-img {
+      height: 100%;
+      aspect-ratio: auto;
+    }
+
+    .card-body {
+      padding: 14px 16px 16px;
+    }
+
+    .card-name {
+      font-size: 24px;
+    }
+
+    .card-ex {
+      -webkit-line-clamp: 2;
+    }
+  }
+</style>
+
+<script>
+  import { reduced } from '../scripts/motion';
+  import { mountEarth, type EarthCountry } from '../scripts/earth';
+
+  const stage = document.querySelector<HTMLElement>('[data-earth]');
+  if (stage) {
+    const card = stage.querySelector<HTMLElement>('[data-earth-card]')!;
+    const cardImg = card.querySelector<HTMLImageElement>('[data-card-img]')!;
+    const cardMeta = card.querySelector<HTMLElement>('[data-card-meta]')!;
+    const cardName = card.querySelector<HTMLElement>('[data-card-name]')!;
+    const cardEx = card.querySelector<HTMLElement>('[data-card-ex]')!;
+    const cardLink = card.querySelector<HTMLAnchorElement>('[data-card-link]')!;
+    const spinBtn = stage.querySelector<HTMLButtonElement>('[data-earth-spin]')!;
+    const flyButtons = [...document.querySelectorAll<HTMLButtonElement>('[data-fly]')];
+
+    const narrow = window.matchMedia('(max-width: 900px)');
+    let earthApi: { setShift(px: number): void } | null = null;
+    const showCard = (c: EarthCountry | null, name?: string) => {
+      flyButtons.forEach((b) => b.setAttribute('aria-current', String(Boolean(c) && b.dataset.fly === c?.id)));
+      if (!c && !name) {
+        card.hidden = true;
+        earthApi?.setShift(0);
+        return;
+      }
+      card.hidden = false;
+      earthApi?.setShift(narrow.matches ? stage.clientHeight * 0.2 : 0);
+      cardName.textContent = c?.n ?? name ?? '';
+      if (c?.v) {
+        cardMeta.textContent = c.v === 'dom' ? `${c.c}, dom i punkt zero` : `${c.c}, byłem: ${c.v}`;
+        cardEx.textContent = c.ex ?? '';
+        cardLink.hidden = false;
+        cardLink.href = `/kraje/${c.s}/`;
+        if (c.img) {
+          cardImg.src = c.img;
+          cardImg.alt = c.alt ?? c.n;
+          cardImg.hidden = false;
+        } else cardImg.hidden = true;
+      } else {
+        cardMeta.textContent = c ? `${c.c}, jeszcze przede mną` : 'terytorium spoza listy 195';
+        cardEx.textContent = '';
+        cardLink.hidden = true;
+        cardImg.hidden = true;
+      }
+    };
+
+    mountEarth(stage, {
+      reduced,
+      onSelect: showCard,
+      onSpinChange: (on) => spinBtn.setAttribute('aria-pressed', String(on)),
+    })
+      .then((api) => {
+        if (!api) {
+          stage.querySelector<HTMLElement>('[data-earth-fallback]')!.hidden = false;
+          stage.querySelector<HTMLElement>('[data-earth-loading]')!.hidden = true;
+          return;
+        }
+        earthApi = api;
+        spinBtn.setAttribute('aria-pressed', String(api.isSpinning()));
+        stage.querySelectorAll<HTMLButtonElement>('[data-earth-zoom]').forEach((b) =>
+          b.addEventListener('click', () => api.zoomBy(b.dataset.earthZoom === 'in' ? 1.4 : 1 / 1.4)),
+        );
+        spinBtn.addEventListener('click', () => api.setSpin(!api.isSpinning()));
+        stage.querySelector('[data-earth-reset]')!.addEventListener('click', () => api.reset());
+        card.querySelector('[data-card-close]')!.addEventListener('click', () => {
+          api.select(null);
+          showCard(null);
+        });
+        const toStage = () => narrow.matches && stage.scrollIntoView({ behavior: 'smooth', block: 'end' });
+        flyButtons.forEach((b) =>
+          b.addEventListener('click', () => {
+            api.flyTo(b.dataset.fly!);
+            toStage();
+          }),
+        );
+
+        const input = document.querySelector<HTMLInputElement>('[data-earth-search]')!;
+        const results = document.querySelector<HTMLElement>('[data-earth-results]')!;
+        const norm = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ł/g, 'l');
+        const render = () => {
+          const q = norm(input.value.trim());
+          if (!q) {
+            results.hidden = true;
+            return;
+          }
+          const found = api.countries.filter((c) => norm(c.n).includes(q)).slice(0, 7);
+          results.innerHTML = '';
+          if (!found.length) {
+            results.hidden = true;
+            return;
+          }
+          for (const c of found) {
+            const li = document.createElement('li');
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.innerHTML = `<span></span><small class="${c.v ? 'is-visited' : ''}">${c.v ? 'odhaczony' : 'przede mną'}</small>`;
+            btn.querySelector('span')!.textContent = c.n;
+            btn.addEventListener('click', () => {
+              api.flyTo(c.id);
+              toStage();
+              input.value = '';
+              results.hidden = true;
+            });
+            li.appendChild(btn);
+            results.appendChild(li);
+          }
+          results.hidden = false;
+        };
+        input.addEventListener('input', render);
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') results.querySelector<HTMLButtonElement>('button')?.click();
+          if (e.key === 'Escape') results.hidden = true;
+        });
+      })
+      .catch(() => {
+        stage.querySelector<HTMLElement>('[data-earth-fallback]')!.hidden = false;
+        stage.querySelector<HTMLElement>('[data-earth-loading]')!.hidden = true;
+      });
+  }
+</script>

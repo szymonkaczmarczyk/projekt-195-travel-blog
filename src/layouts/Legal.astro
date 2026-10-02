@@ -1,0 +1,164 @@
+---
+import Base from './Base.astro';
+import PageHead from '../components/PageHead.astro';
+
+interface Props {
+  title: string;
+  description: string;
+  note: string;
+  lead: string;
+  updated: string;
+  summary: string[];
+}
+
+const { title, description, note, lead, updated, summary } = Astro.props;
+---
+
+<Base title={title} description={description}>
+  <PageHead title={title} note={note} lead={lead} />
+
+  <div class="wrap legal">
+    <aside class="legal-aside" data-reveal>
+      <p class="legal-label">W skrócie</p>
+      <ul class="legal-summary">
+        {summary.map((item) => <li>{item}</li>)}
+      </ul>
+      <p class="legal-updated">Ostatnia aktualizacja: {updated}</p>
+    </aside>
+    <div class="legal-body">
+      <slot />
+    </div>
+  </div>
+</Base>
+
+<style>
+  .legal {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 2fr);
+    gap: clamp(40px, 7vw, 120px);
+    align-items: start;
+    padding-bottom: clamp(80px, 10vw, 140px);
+  }
+
+  .legal-aside {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    padding: clamp(20px, 2.4vw, 28px);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--bg-2);
+  }
+
+  .legal-label {
+    margin-bottom: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--faint);
+  }
+
+  .legal-summary {
+    display: grid;
+    gap: 12px;
+  }
+
+  .legal-summary li {
+    position: relative;
+    padding-left: 22px;
+    line-height: 1.45;
+    color: var(--muted);
+  }
+
+  .legal-summary li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5em;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .legal-updated {
+    margin-top: 22px;
+    padding-top: 16px;
+    border-top: 1px solid var(--line);
+    font-size: 13px;
+    color: var(--faint);
+  }
+
+  .legal-body {
+    counter-reset: legal;
+    display: grid;
+    gap: clamp(40px, 4.5vw, 60px);
+    max-width: 68ch;
+  }
+
+  .legal-body :global(section) {
+    display: grid;
+    gap: 14px;
+  }
+
+  .legal-body :global(h2) {
+    counter-increment: legal;
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 4px;
+    font-size: clamp(1.45rem, 2.3vw, 2rem);
+    font-weight: 700;
+    font-stretch: 85%;
+    line-height: 1.1;
+    letter-spacing: -0.01em;
+  }
+
+  .legal-body :global(h2)::before {
+    content: counter(legal, decimal-leading-zero);
+    font-size: 0.5em;
+    font-weight: 600;
+    font-stretch: 100%;
+    letter-spacing: 0.04em;
+    color: var(--accent);
+  }
+
+  .legal-body :global(p),
+  .legal-body :global(li) {
+    font-size: 17px;
+    line-height: 1.7;
+    color: #d6d3cb;
+  }
+
+  .legal-body :global(ul) {
+    display: grid;
+    gap: 6px;
+    padding-left: 1.2em;
+    list-style: disc;
+  }
+
+  .legal-body :global(li::marker) {
+    color: var(--accent);
+  }
+
+  .legal-body :global(a) {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 4px;
+    transition: color 0.3s;
+  }
+
+  .legal-body :global(a:hover) {
+    color: var(--accent);
+  }
+
+  @media (max-width: 900px) {
+    .legal {
+      grid-template-columns: 1fr;
+    }
+
+    .legal-aside {
+      position: static;
+    }
+  }
+</style>

@@ -1,0 +1,184 @@
+---
+import { Image } from 'astro:assets';
+import Icon from '../Icon.astro';
+import { collectionList, plural, type Visit } from '../../lib/data';
+
+interface Props {
+  visits: Visit[];
+}
+
+const { visits } = Astro.props;
+const list = collectionList(visits).filter((c) => c.key !== 'najlepsze');
+const tilts = [-3, 2.2, -1.4, 2.8, -2.2, 1.6];
+---
+
+<section class="coll section" aria-labelledby="coll-title">
+  <div class="wrap">
+    <header class="coll-head">
+      <h2 class="display h-lg" id="coll-title" data-split>Kolekcje</h2>
+      <p class="coll-lead" data-reveal>Wyspy, góry, pustynie i reszta świata poukładana tak, jak ją zapamiętałem.</p>
+    </header>
+
+    <ul class="coll-grid">
+      {list.map((c, i) => {
+        const cover = c.visits.find((v) => v.country.code === c.photo)?.cover ?? c.visits[0]?.cover;
+        return (
+          <li style={`--tilt:${tilts[i % tilts.length]}deg`} data-reveal>
+            <a class="polaroid" href={`/kolekcje/${c.key}/`}>
+              <span class="polaroid-photo">
+                {cover && <Image src={cover.src} alt={cover.alt} widths={[400, 800]} sizes="(max-width: 700px) 46vw, 26vw" quality={72} />}
+              </span>
+              <span class="polaroid-caption">
+                <span class="polaroid-name hand">{c.name}</span>
+                <span class="polaroid-count">
+                  {c.visits.length} {plural(c.visits.length, 'kraj', 'kraje', 'krajów')}
+                  <Icon name="arrowRight" size={16} />
+                </span>
+              </span>
+              <span class="polaroid-note hand">{c.note}</span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </div>
+</section>
+
+<style>
+  .coll-head {
+    display: grid;
+    gap: 18px;
+    margin-bottom: clamp(48px, 6vw, 96px);
+  }
+
+  .coll-lead {
+    max-width: 44ch;
+    color: var(--muted);
+  }
+
+  .coll-grid {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: clamp(32px, 5vw, 72px) clamp(20px, 4vw, 64px);
+  }
+
+  .coll-grid li {
+    grid-column: span 2;
+  }
+
+  .coll-grid li:nth-child(2) {
+    margin-top: clamp(0px, 3vw, 44px);
+  }
+
+  .coll-grid li:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+
+  .coll-grid li:nth-child(5) {
+    grid-column: 4 / span 2;
+    margin-top: clamp(0px, 3vw, 44px);
+  }
+
+  .polaroid {
+    position: relative;
+    display: block;
+    padding: 12px 12px 0;
+    background: var(--paper);
+    color: var(--paper-ink);
+    border-radius: 4px;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.4);
+    transform: rotate(var(--tilt));
+    transition: transform 0.8s var(--ease-out), box-shadow 0.8s var(--ease-out);
+  }
+
+  .polaroid:hover {
+    transform: rotate(0deg) translateY(-8px) scale(1.02);
+    box-shadow: 0 36px 80px rgb(0 0 0 / 0.5);
+  }
+
+  .polaroid-photo {
+    display: block;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: #cfcbc2;
+  }
+
+  .polaroid-photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    filter: saturate(0.92) contrast(1.04);
+  }
+
+  .polaroid-caption {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 4px 18px;
+  }
+
+  .polaroid-name {
+    font-size: clamp(24px, 2.4vw, 32px);
+    line-height: 1;
+  }
+
+  .polaroid-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #4d5752;
+    white-space: nowrap;
+  }
+
+  .polaroid-note {
+    position: absolute;
+    right: -10px;
+    top: -18px;
+    padding: 4px 10px;
+    background: var(--accent);
+    color: var(--paper-ink);
+    font-size: 16px;
+    transform: rotate(4deg);
+    border-radius: 2px;
+  }
+
+  @media (max-width: 860px) {
+    .coll-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .coll-grid li,
+    .coll-grid li:nth-child(4) {
+      grid-column: span 1;
+      margin-top: 0;
+    }
+
+    .coll-grid li:nth-child(2n) {
+      margin-top: 40px;
+    }
+
+    .coll-grid li:nth-child(5) {
+      grid-column: 1 / -1;
+      justify-self: center;
+      width: calc(50% - 10px);
+      margin-top: 0;
+    }
+
+    .polaroid {
+      padding: 8px 8px 0;
+    }
+
+    .polaroid-caption {
+      flex-direction: column;
+      gap: 6px;
+      padding: 10px 2px 12px;
+    }
+
+    .polaroid-note {
+      display: none;
+    }
+  }
+</style>

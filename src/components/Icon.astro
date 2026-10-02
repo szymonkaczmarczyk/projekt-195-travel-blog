@@ -1,0 +1,24 @@
+---
+import arrowRight from '@phosphor-icons/core/regular/arrow-right.svg?raw';
+import arrowLeft from '@phosphor-icons/core/regular/arrow-left.svg?raw';
+import arrowUpRight from '@phosphor-icons/core/regular/arrow-up-right.svg?raw';
+import airplane from '@phosphor-icons/core/regular/airplane-tilt.svg?raw';
+import list from '@phosphor-icons/core/regular/list.svg?raw';
+import close from '@phosphor-icons/core/regular/x.svg?raw';
+import star from '@phosphor-icons/core/fill/star-fill.svg?raw';
+import starEmpty from '@phosphor-icons/core/regular/star.svg?raw';
+import search from '@phosphor-icons/core/regular/magnifying-glass.svg?raw';
+
+const icons = { arrowRight, arrowLeft, arrowUpRight, airplane, list, close, star, starEmpty, search };
+
+interface Props {
+  name: keyof typeof icons;
+  size?: number;
+  class?: string;
+}
+
+const { name, size = 20, class: className } = Astro.props;
+const svg = icons[name].replace('<svg ', `<svg width="${size}" height="${size}" aria-hidden="true" focusable="false" ${className ? `class="${className}" ` : ''}`);
+---
+
+<Fragment set:html={svg} />

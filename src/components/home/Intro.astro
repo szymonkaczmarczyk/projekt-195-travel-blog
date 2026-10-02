@@ -1,0 +1,222 @@
+---
+const clouds = [960, 1600, 2400].map((w) => `/img/intro/clouds-${w}.webp ${w}w`).join(', ');
+const veil = [960, 1600].map((w) => `/img/intro/veil-${w}.webp ${w}w`).join(', ');
+---
+
+<script is:inline>
+  (function () {
+    var skip = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    try {
+      skip = skip || sessionStorage.getItem('p195-intro-seen') === '1';
+    } catch (e) {}
+    if (skip) document.documentElement.classList.add('intro-done');
+  })();
+</script>
+
+<div class="intro" data-intro aria-hidden="true">
+  <img class="intro-sky" data-intro-sky src="/img/intro/clouds-1600.webp" srcset={clouds} sizes="110vw" alt="" width="2400" height="1607" fetchpriority="high" loading="lazy" />
+  <div class="intro-scene" data-intro-scene>
+    <div class="intro-wall">
+      <div class="intro-bezel"></div>
+      <div class="intro-well"></div>
+      <div class="intro-slot"></div>
+    </div>
+    <div class="intro-shade">
+      <span class="intro-handle"></span>
+    </div>
+    <div class="intro-rim"></div>
+  </div>
+  <div class="intro-flash" data-intro-flash></div>
+  <img class="intro-veil" data-intro-veil src="/img/intro/veil-1600.webp" srcset={veil} sizes="100vw" alt="" width="1600" height="750" loading="lazy" />
+  <div class="intro-fade"></div>
+</div>
+
+<style>
+  .intro {
+    display: none;
+  }
+
+  :global(.js) .intro {
+    --gh: min(61svh, 112vw);
+    --gw: calc(var(--gh) * 0.78);
+    --gy: -1svh;
+    --hole: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 128' preserveAspectRatio='none'%3E%3Crect width='100' height='128' rx='45' ry='42'/%3E%3C/svg%3E");
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-intro);
+    display: block;
+    overflow: hidden;
+    background: #e9eef3;
+    cursor: pointer;
+  }
+
+  :global(html.intro-done) .intro {
+    display: none;
+  }
+
+  .intro-sky {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 140%;
+    max-width: none;
+    object-fit: cover;
+    object-position: 50% 0%;
+    transform-origin: 50% 35%;
+    background: #9fc4e6;
+    transform: scale(1.06);
+    will-change: transform;
+  }
+
+  .intro-scene {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% calc(50% + var(--gy));
+    will-change: transform;
+  }
+
+  .intro-wall {
+    position: absolute;
+    inset: -14%;
+    background:
+      radial-gradient(ellipse calc(var(--gw) * 1.25) calc(var(--gh) * 0.95) at 50% calc(50% + var(--gy)), rgb(255 248 238 / 0.55), transparent 70%),
+      radial-gradient(ellipse 75% 85% at 50% 48%, #d9cebf 0%, #b3a390 30%, #7d6a57 58%, #4a3b2f 82%, #2f251e 100%);
+    -webkit-mask-image: var(--hole), linear-gradient(#000 0 0);
+    -webkit-mask-size: var(--gw) var(--gh), 100% 100%;
+    -webkit-mask-position: 50% calc(50% + var(--gy)), 0 0;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-composite: xor;
+    mask-image: var(--hole), linear-gradient(#000 0 0);
+    mask-size: var(--gw) var(--gh), 100% 100%;
+    mask-position: 50% calc(50% + var(--gy)), 0 0;
+    mask-repeat: no-repeat;
+    mask-composite: exclude;
+  }
+
+  .intro-bezel,
+  .intro-well,
+  .intro-slot,
+  .intro-shade,
+  .intro-rim {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + var(--gy));
+    transform: translate(-50%, -50%);
+  }
+
+  .intro-bezel {
+    width: calc(var(--gw) * 1.52);
+    height: calc(var(--gh) * 1.47);
+    border-radius: 47% / 38%;
+    background: radial-gradient(ellipse 70% 60% at 50% 38%, #ffffff 0%, #f1f0ed 45%, #dcdad5 78%, #c4c1ba 100%);
+    box-shadow:
+      0 30px 90px rgb(40 24 12 / 0.45),
+      0 0 0 1px rgb(255 255 255 / 0.4),
+      inset 0 -26px 50px rgb(80 70 60 / 0.16),
+      inset 0 18px 30px rgb(255 255 255 / 0.9);
+  }
+
+  .intro-well {
+    width: calc(var(--gw) * 1.13);
+    height: calc(var(--gh) * 1.1);
+    border-radius: 46% / 37%;
+    background: linear-gradient(180deg, #c8c6c1 0%, #e7e6e2 22%, #f7f6f3 60%, #efeee9 100%);
+    box-shadow:
+      inset 0 10px 22px rgb(60 50 40 / 0.32),
+      inset 0 -4px 10px rgb(255 255 255 / 0.9),
+      0 2px 0 rgb(255 255 255 / 0.7);
+  }
+
+  .intro-slot {
+    width: calc(var(--gw) * 0.46);
+    height: calc(var(--gh) * 0.07);
+    top: calc(50% + var(--gy) - var(--gh) * 0.6);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #8d8a85, #b9b6b0);
+    box-shadow: inset 0 3px 6px rgb(0 0 0 / 0.35);
+  }
+
+  .intro-shade {
+    width: var(--gw);
+    height: calc(var(--gh) * 0.12);
+    top: calc(50% + var(--gy) - var(--gh) * 0.44);
+    background: linear-gradient(180deg, #9d9b96 0%, #8b8984 70%, #75736f 100%);
+    -webkit-mask-image: var(--hole);
+    -webkit-mask-size: var(--gw) var(--gh);
+    -webkit-mask-position: 0 0;
+    -webkit-mask-repeat: no-repeat;
+    mask-image: var(--hole);
+    mask-size: var(--gw) var(--gh);
+    mask-position: 0 0;
+    mask-repeat: no-repeat;
+    box-shadow: inset 0 -3px 0 rgb(220 218 213 / 0.9);
+  }
+
+  .intro-handle {
+    position: absolute;
+    left: 50%;
+    bottom: 6px;
+    width: 34%;
+    height: 7px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: linear-gradient(180deg, #6c6a66, #57554f);
+  }
+
+  .intro-rim {
+    width: var(--gw);
+    height: var(--gh);
+    border-radius: 45% / 33%;
+    box-shadow:
+      inset 0 0 0 5px rgb(236 243 249 / 0.95),
+      inset 0 0 0 8px rgb(170 190 205 / 0.55),
+      inset 0 14px 28px rgb(30 50 70 / 0.22),
+      inset 0 -8px 24px rgb(255 255 255 / 0.25);
+    pointer-events: none;
+  }
+
+  .intro-flash {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, #6f869c 0%, #849fb9 26%, #8ea3b6 46%, #7c8a90 64%, #46524b 82%, #121816 100%);
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .intro-veil {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: auto;
+    min-height: 62%;
+    max-width: none;
+    object-fit: cover;
+    object-position: 50% 0;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    will-change: transform, opacity;
+  }
+
+  .intro-fade {
+    position: absolute;
+    inset: 0;
+    background: #0d1110;
+    pointer-events: none;
+    animation: intro-fade 0.9s 0.1s ease-out both;
+  }
+
+  @keyframes intro-fade {
+    to {
+      opacity: 0;
+    }
+  }
+
+  @media (max-aspect-ratio: 3/4) {
+    :global(.js) .intro {
+      --gh: min(54svh, 104vw);
+    }
+  }
+</style>

@@ -1,0 +1,103 @@
+---
+import Photo from './Photo.astro';
+import Icon from './Icon.astro';
+import { continents } from '../data/meta';
+import { monthYear, type Visit } from '../lib/data';
+
+interface Props {
+  visit: Visit;
+  sizes?: string;
+  ratio?: string;
+  class?: string;
+  excerpt?: boolean;
+}
+
+const { visit, sizes = '(max-width: 700px) 92vw, 30vw', ratio = '4 / 5', class: className, excerpt = false } = Astro.props;
+const continent = continents.find((c) => c.key === visit.country.continent)?.name;
+---
+
+<a class:list={['card', className]} href={`/kraje/${visit.slug}/`} data-reveal>
+  <Photo photo={visit.cover} sizes={sizes} class="card-media" parallax={8} />
+  <div class="card-body">
+    <h3 class="card-name">{visit.name}</h3>
+    <span class="card-arrow"><Icon name="arrowUpRight" size={22} /></span>
+    <p class="card-meta">
+      <span>{monthYear(visit.visited)}</span>
+      <span>{continent}</span>
+    </p>
+    {excerpt && <p class="card-excerpt">{visit.excerpt}</p>}
+  </div>
+</a>
+
+<style define:vars={{ ratio }}>
+  .card {
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+
+  .card :global(.card-media) {
+    aspect-ratio: var(--ratio);
+  }
+
+  .card :global(.card-media img) {
+    transition: scale 1.2s var(--ease-out);
+  }
+
+  .card:hover :global(.card-media img) {
+    scale: 1.05;
+  }
+
+  .card-body {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 12px;
+    align-items: center;
+  }
+
+  .card-name {
+    font-size: clamp(22px, 2vw, 30px);
+    font-weight: 700;
+    font-stretch: 80%;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+  }
+
+  .card-arrow {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border-radius: 999px;
+    border: 1px solid var(--line-strong);
+    transition: background-color 0.3s, color 0.3s, transform 0.5s var(--ease-out);
+  }
+
+  .card:hover .card-arrow {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper-ink);
+    transform: rotate(45deg);
+  }
+
+  .card-meta {
+    grid-column: 1 / -1;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 14px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .card-excerpt {
+    grid-column: 1 / -1;
+    margin-top: 6px;
+    font-size: 15px;
+    line-height: 1.55;
+    color: var(--muted);
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>

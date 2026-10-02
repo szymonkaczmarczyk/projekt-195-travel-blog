@@ -1,0 +1,262 @@
+---
+import { getImage } from 'astro:assets';
+import Icon from '../Icon.astro';
+import { continents } from '../../data/meta';
+import type { Visit } from '../../lib/data';
+
+interface Props {
+  visits: Visit[];
+}
+
+const { visits } = Astro.props;
+const rows = await Promise.all(
+  visits.map(async (v) => ({
+    v,
+    img: v.cover ? await getImage({ src: v.cover.src, width: 800, format: "webp", quality: 72 }) : null,
+    continent: continents.find((c) => c.key === v.country.continent)?.name,
+  })),
+);
+---
+
+<section class="top section" aria-labelledby="top-title">
+  <div class="wrap">
+    <header class="top-head">
+      <h2 class="display h-lg" id="top-title" data-split>Najlepsze</h2>
+      <p class="top-note hand" data-reveal>do tych wróciłbym jutro</p>
+    </header>
+
+    <ul class="top-list" data-toplist>
+      {rows.map(({ v, img, continent }) => (
+        <li data-reveal>
+          <a href={`/kraje/${v.slug}/`} class="top-row" data-img={img?.src}>
+            <span class="top-name">{v.name}</span>
+            <span class="top-meta">
+              <span>{continent}</span>
+              <span>{v.visited.getFullYear()}</span>
+            </span>
+            <span class="top-arrow"><Icon name="arrowRight" size={26} /></span>
+            {img && <img class="top-thumb" src={img.src} alt={v.cover!.alt} loading="lazy" width="800" height={Math.round(800 / (v.cover!.src.width / v.cover!.src.height))} />}
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <a class="link-arrow top-more" href="/kolekcje/najlepsze/">Dlaczego właśnie te <Icon name="arrowRight" /></a>
+  </div>
+  <div class="top-float" data-top-float aria-hidden="true"><img alt="" /></div>
+</section>
+
+<style>
+  .top {
+    position: relative;
+    overflow: clip;
+  }
+
+  .top-head {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+    margin-bottom: clamp(32px, 5vw, 64px);
+  }
+
+  .top-note {
+    font-size: clamp(22px, 2.2vw, 30px);
+    color: var(--accent);
+    transform: rotate(-4deg) translateY(-8px);
+  }
+
+  .top-list {
+    border-top: 1px solid var(--line);
+  }
+
+  .top-row {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 24px;
+    padding-block: clamp(14px, 1.6vw, 22px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .top-name {
+    font-size: clamp(2.2rem, 5.6vw, 5.6rem);
+    font-weight: 800;
+    font-stretch: 75%;
+    line-height: 0.92;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+    transition: transform 0.7s var(--ease-out), color 0.4s;
+  }
+
+  .top-meta {
+    display: flex;
+    gap: 18px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .top-arrow {
+    display: grid;
+    color: var(--muted);
+    transition: transform 0.6s var(--ease-out), color 0.3s;
+  }
+
+  .top-thumb {
+    display: none;
+  }
+
+  .top-more {
+    margin-top: 40px;
+  }
+
+  .top-float {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 5;
+    width: clamp(220px, 22vw, 340px);
+    aspect-ratio: 4 / 3;
+    border-radius: var(--radius);
+    overflow: hidden;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  .top-float img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    .top-list:hover .top-name {
+      color: var(--faint);
+    }
+
+    .top-row:hover .top-name {
+      color: var(--text);
+      transform: translateX(18px);
+    }
+
+    .top-row:hover .top-arrow {
+      color: var(--accent);
+      transform: translateX(6px);
+    }
+  }
+
+  @media (max-width: 700px) {
+    .top-row {
+      grid-template-columns: 72px 1fr;
+      gap: 6px 16px;
+    }
+
+    .top-thumb {
+      display: block;
+      grid-row: 1 / span 2;
+      width: 72px;
+      height: 72px;
+      object-fit: cover;
+      border-radius: 8px;
+    }
+
+    .top-name {
+      grid-column: 2;
+    }
+
+    .top-meta {
+      grid-column: 2;
+      font-size: 13px;
+    }
+
+    .top-arrow {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { gsap, ScrollTrigger, reduced } from '../../scripts/motion';
+
+  const section = document.querySelector<HTMLElement>('.top');
+  const list = document.querySelector<HTMLElement>('[data-toplist]');
+  const float = document.querySelector<HTMLElement>('[data-top-float]');
+  const fine = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  if (section && list && float && fine && !reduced) {
+    const img = float.querySelector('img')!;
+    const xTo = gsap.quickTo(float, 'x', { duration: 0.6, ease: 'power3' });
+    const yTo = gsap.quickTo(float, 'y', { duration: 0.6, ease: 'power3' });
+    const rTo = gsap.quickTo(float, 'rotation', { duration: 0.8, ease: 'power3' });
+    const pad = 14;
+    let visible = false;
+    let lastX = 0;
+    const pointer = { x: 0, y: 0 };
+
+    const inside = () => {
+      const r = list.getBoundingClientRect();
+      return pointer.x >= r.left && pointer.x <= r.right && pointer.y >= r.top && pointer.y <= r.bottom;
+    };
+
+    const place = (instant = false) => {
+      const sec = section.getBoundingClientRect();
+      const box = list.getBoundingClientRect();
+      const w = float.offsetWidth;
+      const h = float.offsetHeight;
+      const minX = box.left - sec.left + pad;
+      const maxX = box.right - sec.left - w - pad;
+      const minY = box.top - sec.top + pad;
+      const maxY = box.bottom - sec.top - h - pad;
+      const x = Math.max(minX, Math.min(maxX, pointer.x - sec.left - w / 2 + 120));
+      const y = Math.max(minY, Math.min(maxY, pointer.y - sec.top - h / 2));
+      if (instant) gsap.set(float, { x, y });
+      else {
+        xTo(x);
+        yTo(y);
+      }
+    };
+
+    const hide = () => {
+      if (!visible) return;
+      visible = false;
+      gsap.to(float, { autoAlpha: 0, scale: 0.9, duration: 0.3, ease: 'power3.in', overwrite: 'auto' });
+    };
+
+    list.querySelectorAll<HTMLAnchorElement>('[data-img]').forEach((row) => {
+      row.addEventListener('mouseenter', (e) => {
+        pointer.x = e.clientX;
+        pointer.y = e.clientY;
+        if (!visible) place(true);
+        visible = true;
+        img.src = row.dataset.img || '';
+        gsap.to(float, { autoAlpha: 1, scale: 1, duration: 0.45, ease: 'power3.out', overwrite: 'auto' });
+      });
+    });
+    list.addEventListener('mouseleave', hide);
+    list.addEventListener('mousemove', (e) => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      if (!visible) return;
+      place();
+      rTo(Math.max(-4, Math.min(4, (e.clientX - lastX) * 0.3)));
+      lastX = e.clientX;
+    });
+
+    const onScroll = () => {
+      if (!visible) return;
+      if (inside()) place();
+      else hide();
+    };
+    ScrollTrigger.create({
+      trigger: section,
+      start: 'top bottom',
+      end: 'bottom top',
+      onUpdate: onScroll,
+      onLeave: hide,
+      onLeaveBack: hide,
+    });
+    gsap.set(float, { scale: 0.9 });
+  }
+</script>

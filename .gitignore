@@ -1,0 +1,47 @@
+dist/
+.astro/
+node_modules/
+
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+.env
+.env.*
+!.env.example
+
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+*.log
+
+* 2
+* 2.*
+* 3
+* 3.*
+
+AGENTS.md
+CLAUDE.md
+CLAUDE.local.md
+GEMINI.md
+.claude/
+.mcp.json
+.playwright-mcp/
+.cursor/
+.cursorrules
+.cursorignore
+.windsurf/
+.windsurfrules
+.codex/
+.gemini/
+.aider*
+.continue/
+.clinerules
+.roo/
+.kiro/
+.junie/
+.github/copilot-instructions.md
+.github/instructions/

@@ -1,0 +1,137 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import CountryCard from '../../components/CountryCard.astro';
+import { collectionsMeta } from '../../data/meta';
+import { getVisits, collectionList, plural } from '../../lib/data';
+import { ogFromPhoto } from '../../lib/og';
+
+export async function getStaticPaths() {
+  return collectionsMeta.map((c) => ({ params: { slug: c.key } }));
+}
+
+const { slug } = Astro.params;
+const visits = await getVisits();
+const list = collectionList(visits.filter((v) => !v.home || slug !== 'najlepsze'));
+const current = list.find((c) => c.key === slug)!;
+const photos = [current.visits.find((v) => v.country.code === current.photo), ...current.visits.filter((v) => v.country.code !== current.photo)]
+  .filter((v) => v !== undefined)
+  .slice(0, 3)
+  .map((v) => v.cover)
+  .filter((p) => p !== undefined);
+const others = list.filter((c) => c.key !== slug);
+const og = await ogFromPhoto(photos[0]);
+---
+
+<Base title={`${current.name}: kolekcja krajów`} description={`${current.description} ${current.visits.length} ${plural(current.visits.length, 'kraj', 'kraje', 'krajów')} w kolekcji.`} image={og}>
+  <PageHead title={current.name} note={current.note} lead={current.description} photos={photos}>
+    <p class="count" data-reveal>{current.visits.length} {plural(current.visits.length, 'kraj', 'kraje', 'krajów')} w kolekcji</p>
+  </PageHead>
+
+  <section class="wrap">
+    <div class="grid">
+      {current.visits.map((v) => (
+        <CountryCard visit={v} ratio="3 / 4" sizes="(max-width: 600px) 92vw, (max-width: 1000px) 46vw, 30vw" excerpt />
+      ))}
+    </div>
+  </section>
+
+  <section class="wrap section more" aria-labelledby="more-title">
+    <h2 class="h-md" id="more-title" data-split>Inne kolekcje</h2>
+    <ul class="more-list">
+      {others.map((c, i) => {
+        const cover = c.visits.find((v) => v.country.code === c.photo)?.cover ?? c.visits[0]?.cover;
+        return (
+          <li style={`--tilt:${[-3, 2, -1.5, 2.5, -2, 1.5][i % 6]}deg`} data-reveal>
+            <a href={`/kolekcje/${c.key}/`} class="mini">
+              {cover && <Image src={cover.src} alt={cover.alt} widths={[400]} sizes="(max-width: 700px) 44vw, 15vw" quality={72} />}
+              <span class="hand">{c.name}</span>
+            </a>
+          </li>
+        );
+      })}
+    </ul>
+  </section>
+</Base>
+
+<style>
+  .count {
+    margin-top: 18px;
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(36px, 5vw, 64px) clamp(16px, 2vw, 28px);
+  }
+
+  .grid > :global(:nth-child(3n + 2)) {
+    margin-top: clamp(0px, 5vw, 72px);
+  }
+
+  .more {
+    margin-top: clamp(40px, 6vw, 80px);
+    border-top: 1px solid var(--line);
+  }
+
+  .more-list {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 24px;
+    margin-top: 40px;
+  }
+
+  .mini {
+    display: grid;
+    gap: 8px;
+    padding: 8px 8px 12px;
+    background: var(--paper);
+    color: var(--paper-ink);
+    border-radius: 4px;
+    transform: rotate(var(--tilt));
+    box-shadow: 0 18px 40px rgb(0 0 0 / 0.4);
+    transition: transform 0.6s var(--ease-out);
+  }
+
+  .mini:hover {
+    transform: rotate(0deg) translateY(-6px);
+  }
+
+  .mini :global(img) {
+    width: 100%;
+    aspect-ratio: 1;
+    object-fit: cover;
+  }
+
+  .mini .hand {
+    font-size: 20px;
+    line-height: 1.1;
+  }
+
+  @media (max-width: 1000px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid > :global(:nth-child(3n + 2)) {
+      margin-top: 0;
+    }
+
+    .more-list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+
+    .more-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>

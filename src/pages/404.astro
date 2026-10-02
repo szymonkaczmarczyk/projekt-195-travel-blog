@@ -1,0 +1,207 @@
+---
+import { Image } from 'astro:assets';
+import Base from '../layouts/Base.astro';
+import Icon from '../components/Icon.astro';
+import { getVisits } from '../lib/data';
+
+const visits = await getVisits();
+const picks = ['NZL', 'NAM', 'ISL'].map((code) => visits.find((v) => v.country.code === code)).filter((v) => v?.cover !== undefined);
+const tilts = ['-4deg', '3deg', '-1.5deg'];
+---
+
+<Base title="Nie ma takiego miejsca" description="Strona, której szukasz, nie istnieje albo zmieniła adres. Wróć na start, otwórz globus albo wybierz jeden z odwiedzonych krajów." noindex>
+  <section class="nf wrap">
+    <div class="nf-text">
+      <p class="nf-note hand" data-reveal>zgubiony szlak</p>
+      <p class="nf-code display" aria-hidden="true">404</p>
+      <h1 class="h-md" data-reveal>Tego miejsca nie ma na mapie.</h1>
+      <p class="nf-lead" data-reveal>Strona, której szukasz, nie istnieje albo zmieniła adres. Na tablicy przypiąłem kilka miejsc, które na pewno istnieją.</p>
+      <div class="nf-actions" data-reveal>
+        <a class="btn btn--light" href="/">Strona główna <Icon name="arrowRight" /></a>
+        <a class="btn btn--ghost" href="/globus/">Otwórz globus</a>
+      </div>
+    </div>
+
+    <div class="nf-board" data-reveal>
+      <ul class="nf-prints">
+        {picks.map((v, i) => (
+          <li class={`nf-print nf-print--${i}`} style={`--r:${tilts[i]}`}>
+            <a href={`/kraje/${v!.slug}/`}>
+              <span class={`nf-pin nf-pin--${i}`} aria-hidden="true"></span>
+              <Image src={v!.cover!.src} alt={v!.cover!.alt} widths={[320, 640]} sizes="(max-width: 900px) 42vw, 16vw" quality={72} />
+              <span class="nf-caption hand">{v!.name}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+      <p class="nf-sticky hand" aria-hidden="true">tu za to<br />warto</p>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .nf {
+    min-height: 100svh;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: center;
+    gap: clamp(40px, 6vw, 96px);
+    padding-top: calc(var(--header-h) + 40px);
+    padding-bottom: clamp(64px, 8vw, 120px);
+  }
+
+  .nf-text {
+    display: grid;
+    justify-items: start;
+    gap: 18px;
+  }
+
+  .nf-note {
+    font-size: 26px;
+    color: var(--accent);
+    transform: rotate(-4deg);
+    transform-origin: left;
+  }
+
+  .nf-code {
+    margin: -0.06em 0 -0.12em -0.04em;
+    font-size: clamp(8rem, 22vw, 19rem);
+    line-height: 0.8;
+    color: var(--bg-3);
+  }
+
+  .nf-lead {
+    max-width: 44ch;
+    font-size: 18px;
+    line-height: 1.6;
+    color: var(--muted);
+  }
+
+  .nf-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+  }
+
+  .nf-board {
+    position: relative;
+    padding: clamp(36px, 4vw, 56px) clamp(20px, 3vw, 44px) clamp(56px, 6vw, 84px);
+    border-radius: 18px;
+    background-color: #b0804f;
+    background-image:
+      radial-gradient(ellipse at 50% 35%, rgb(255 225 180 / 0.16), transparent 65%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.18 0 0 0 0 0.08 0 0 0 -3.4 2.05'/%3E%3C/filter%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 0.98 0 0 0 0 0.84 0 0 0 0 0.62 0 0 0 -3.6 1.9'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='0.85'/%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='0.7'/%3E%3C/svg%3E");
+    box-shadow:
+      inset 0 0 0 12px #2b2018,
+      inset 0 0 0 13px rgb(255 255 255 / 0.08),
+      inset 0 26px 60px rgb(0 0 0 / 0.42),
+      0 40px 90px rgb(0 0 0 / 0.45);
+  }
+
+  .nf-prints {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 28px 18px;
+  }
+
+  .nf-print {
+    position: relative;
+    grid-column: span 3;
+    rotate: var(--r);
+    transition: rotate 0.7s var(--ease-out), translate 0.7s var(--ease-out);
+  }
+
+  .nf-print--1 {
+    margin-top: 36px;
+  }
+
+  .nf-print--2 {
+    grid-column: 2 / span 4;
+    margin-top: -8px;
+  }
+
+  .nf-print:hover {
+    rotate: 0deg;
+    translate: 0 -6px;
+  }
+
+  .nf-print a {
+    display: grid;
+    gap: 6px;
+    padding: 9px 9px 8px;
+    background: #f3efe6;
+    color: #2a2418;
+    box-shadow:
+      0 1px 1px rgb(0 0 0 / 0.25),
+      0 18px 34px rgb(0 0 0 / 0.42);
+  }
+
+  .nf-print img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: 2px;
+  }
+
+  .nf-print--2 img {
+    aspect-ratio: 16 / 9;
+  }
+
+  .nf-caption {
+    font-size: 22px;
+    line-height: 1.1;
+  }
+
+  .nf-pin {
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    z-index: 2;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #fff 0 9%, var(--pin) 34%, var(--pin-dark) 100%);
+    box-shadow: 4px 6px 6px rgb(0 0 0 / 0.42);
+  }
+
+  .nf-pin--0 {
+    --pin: #ff6a3d;
+    --pin-dark: #7f2810;
+  }
+
+  .nf-pin--1 {
+    --pin: #4cb5ae;
+    --pin-dark: #1d5753;
+  }
+
+  .nf-pin--2 {
+    --pin: #f2c14e;
+    --pin-dark: #7a5a0e;
+  }
+
+  .nf-sticky {
+    position: absolute;
+    right: clamp(16px, 2.4vw, 36px);
+    bottom: clamp(18px, 2vw, 30px);
+    padding: 12px 16px 10px;
+    background: #fdf3c8;
+    color: #2a2418;
+    font-size: 19px;
+    line-height: 1.05;
+    rotate: 4deg;
+    box-shadow: 0 14px 26px rgb(0 0 0 / 0.35);
+  }
+
+  @media (max-width: 900px) {
+    .nf {
+      grid-template-columns: 1fr;
+      align-items: start;
+    }
+
+    .nf-board {
+      padding-bottom: 96px;
+    }
+  }
+</style>

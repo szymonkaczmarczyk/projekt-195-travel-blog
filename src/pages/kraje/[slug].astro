@@ -1,0 +1,731 @@
+---
+import { render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Photo from '../../components/Photo.astro';
+import Icon from '../../components/Icon.astro';
+import { continents, collectionsMeta, site } from '../../data/meta';
+import { getVisits, travelled, monthYear, fullDate, number, plural, fromHome, type Visit } from '../../lib/data';
+import { ogFromPhoto } from '../../lib/og';
+
+export async function getStaticPaths() {
+  const visits = await getVisits();
+  return visits.map((visit) => ({ params: { slug: visit.slug }, props: { visit } }));
+}
+
+interface Props {
+  visit: Visit;
+}
+
+const { visit } = Astro.props;
+const { Content } = await render(visit.entry);
+const visits = await getVisits();
+const chronological = visits.slice().reverse();
+const position = chronological.findIndex((v) => v.slug === visit.slug) + 1;
+const order = travelled(visits).slice().reverse();
+const idx = order.findIndex((v) => v.slug === visit.slug);
+const prev = idx > 0 ? order[idx - 1] : undefined;
+const next = idx >= 0 && idx < order.length - 1 ? order[idx + 1] : undefined;
+const continent = continents.find((c) => c.key === visit.country.continent)!;
+const tags = collectionsMeta.filter((c) => (visit.tags as string[]).includes(c.key) || (c.key === 'najlepsze' && visit.top));
+const [cover, left = cover, right = cover] = visit.photos;
+const longest = Math.max(...visit.name.split(' ').map((w) => w.length));
+const seed = [...visit.country.code].reduce((h, ch) => h * 31 + ch.charCodeAt(0), 7);
+const tilt = (i: number) => ((i + seed) % 3 === 0 ? (((seed >> (i + 1)) % 2 ? 1 : -1) * (2.5 + ((seed >> i) % 25) / 10)) : (((seed + i) % 5) - 2) * 0.25);
+const pinOffset = (i: number) => (((seed >> i) % 9) - 4) * 9;
+const dateLabel = visit.home ? 'dom, punkt zero' : `${monthYear(visit.visited)}, ${visit.days} ${plural(visit.days, 'dzień', 'dni', 'dni')}`;
+const route = visit.route?.split('·').map((s) => s.trim()) ?? [];
+const og = await ogFromPhoto(visit.cover);
+---
+
+<Base title={visit.title ?? `${visit.name}: ${visit.home ? 'punkt zero podróży' : 'relacja z podróży'}`} description={visit.excerpt} image={og} type="article">
+  <section class="split" data-split-hero style={`--len:${longest}`}>
+    <div class="split-center">
+      <p class="split-meta">
+        <span>{visit.home ? 'punkt zero' : monthYear(visit.visited)}</span>
+        <Icon name="airplane" size={18} />
+        <a href={`/kontynenty/${continent.key}/`}>{continent.name}</a>
+      </p>
+      <h1 class="display split-title" data-split-title>{visit.name}</h1>
+      <p class="split-sub hand">{visit.home ? 'tu wszystko się zaczęło' : `${visit.days} ${plural(visit.days, 'dzień', 'dni', 'dni')} w drodze`}</p>
+    </div>
+    <div class="split-card">
+      <div class="split-half split-left" data-split-left>
+        <Photo photo={left} sizes="(max-width: 700px) 50vw, 32vw" priority widths={[400, 800, 1200]} />
+      </div>
+      <div class="split-half split-right" data-split-right>
+        <Photo photo={right} sizes="(max-width: 700px) 50vw, 32vw" priority widths={[400, 800, 1200]} />
+      </div>
+      <p class="split-tag hand" data-split-tag aria-hidden="true">{visit.name}, {visit.home ? 'dom' : monthYear(visit.visited)}</p>
+    </div>
+  </section>
+
+  <article class="post">
+    <div class="wrap post-grid">
+      <header class="post-head">
+        {visit.title && <p class="post-kicker">{visit.title}</p>}
+        <p class="post-lead" data-reveal>{visit.excerpt}</p>
+        {route.length > 1 && (
+          <ol class="post-route" data-reveal aria-label="Trasa">
+            {route.map((stop, i) => (
+              <li>
+                {stop}
+                {i < route.length - 1 && <Icon name="arrowRight" size={16} />}
+              </li>
+            ))}
+          </ol>
+        )}
+      </header>
+
+      <aside class="facts" data-reveal>
+        <figure class="facts-globe">
+          <img src={`/img/globes/${visit.country.code.toLowerCase()}.webp`} width="640" height="640" alt={`${visit.name} zaznaczony na globusie`} loading="lazy" decoding="async" />
+          <figcaption class="facts-cap hand">tu byłem</figcaption>
+        </figure>
+        <dl class="facts-list">
+          <div><dt>Data wizyty</dt><dd>{visit.home ? 'od zawsze' : fullDate(visit.visited)}</dd></div>
+          {!visit.home && <div><dt>Na miejscu</dt><dd>{visit.days} {plural(visit.days, 'dzień', 'dni', 'dni')}</dd></div>}
+          <div>
+            <dt>Ocena</dt>
+            <dd class="stars" aria-label={`${visit.rating} na 5`}>
+              {Array.from({ length: 5 }, (_, i) => <Icon name={i < visit.rating ? 'star' : 'starEmpty'} size={16} />)}
+            </dd>
+          </div>
+          <div><dt>Kontynent</dt><dd><a href={`/kontynenty/${continent.key}/`}>{continent.name}</a></dd></div>
+          {!visit.home && <div><dt>Od Warszawy</dt><dd>{number(fromHome(visit.country))} km</dd></div>}
+          <div><dt>Powierzchnia</dt><dd>{number(visit.country.area)} km²</dd></div>
+          <div><dt>Na liście</dt><dd>{position}. z {site.total}</dd></div>
+        </dl>
+        {tags.length > 0 && (
+          <ul class="facts-tags">
+            {tags.map((t) => <li><a class="chip" href={`/kolekcje/${t.key}/`}>{t.name}</a></li>)}
+          </ul>
+        )}
+      </aside>
+
+      <div class="post-body">
+        {visit.hasStory && <div class="prose"><Content /></div>}
+      </div>
+    </div>
+
+    {visit.photos.length > 0 && (
+      <section class="board-wrap wrap" aria-label={`Zdjęcia z podróży: ${visit.name}`}>
+        <div class="board">
+          <div class="board-note" data-reveal>
+            <span class="pin pin--1" aria-hidden="true"></span>
+            <p class="board-note-name hand">{visit.name}</p>
+            <p class="board-note-date hand">{dateLabel}</p>
+          </div>
+          <div class="board-grid">
+            {visit.photos.map((p, i) => (
+              <figure class:list={['print', `p-${i % 5}`]} style={`--r:${tilt(i).toFixed(2)}deg;--px:${pinOffset(i)}px`} data-reveal>
+                <span class={`pin pin--${(seed + i) % 4}`} aria-hidden="true"></span>
+                <Photo photo={p} sizes="(max-width: 900px) 86vw, 52vw" class="print-media" />
+              </figure>
+            ))}
+          </div>
+        </div>
+      </section>
+    )}
+  </article>
+
+  <nav class="pager wrap" aria-labelledby="pager-title">
+    <h2 class="pager-title" id="pager-title">Dalej w podróży</h2>
+    {prev ? (
+      <a class="pager-link" href={`/kraje/${prev.slug}/`}>
+        <Photo photo={prev.cover} sizes="(max-width: 700px) 92vw, 46vw" class="pager-media" />
+        <span class="pager-label"><Icon name="arrowLeft" size={18} /> Wcześniej</span>
+        <span class="pager-name">{prev.name}</span>
+      </a>
+    ) : <span />}
+    {next ? (
+      <a class="pager-link pager-next" href={`/kraje/${next.slug}/`}>
+        <Photo photo={next.cover} sizes="(max-width: 700px) 92vw, 46vw" class="pager-media" />
+        <span class="pager-label">Później <Icon name="arrowRight" size={18} /></span>
+        <span class="pager-name">{next.name}</span>
+      </a>
+    ) : <span />}
+  </nav>
+</Base>
+
+<style>
+  .split {
+    position: relative;
+    height: 100svh;
+    min-height: 560px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+  }
+
+  .split-center {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    justify-items: center;
+    gap: 18px;
+    padding-inline: var(--gutter);
+    text-align: center;
+  }
+
+  .split-meta {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .split-meta :global(svg) {
+    color: var(--accent);
+  }
+
+  .split-meta a:hover {
+    color: var(--text);
+  }
+
+  .split-title {
+    font-size: min(19vw, calc(150vw / var(--len)), 30svh);
+    overflow-wrap: anywhere;
+  }
+
+  .split-sub {
+    font-size: clamp(22px, 2.4vw, 32px);
+    color: var(--accent);
+    transform: rotate(-3deg);
+  }
+
+  .split-card {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  .split-half {
+    position: absolute;
+    top: 50%;
+    width: min(31vw, 540px);
+    height: min(62svh, 620px);
+    margin-top: calc(min(62svh, 620px) / -2);
+  }
+
+  .split-tag {
+    display: none;
+  }
+
+  :global(.js) .split-tag {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + min(31svh, 310px) - 22px);
+    display: block;
+    padding: 6px 14px;
+    background: var(--accent);
+    color: var(--paper-ink);
+    font-size: clamp(20px, 2vw, 26px);
+    line-height: 1.2;
+    white-space: nowrap;
+    border-radius: 3px;
+    transform: translateX(-50%) rotate(-3deg);
+    box-shadow: 0 10px 30px rgb(0 0 0 / 0.35);
+  }
+
+  .split-half :global(.media) {
+    width: 100%;
+    height: 100%;
+    border-radius: var(--radius-lg);
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.45);
+  }
+
+  .split-left {
+    right: 50%;
+    transform: translateX(-150%) rotate(-9deg);
+  }
+
+  .split-right {
+    left: 50%;
+    transform: translateX(150%) rotate(9deg);
+  }
+
+  .post {
+    position: relative;
+    padding-top: clamp(40px, 6vw, 80px);
+  }
+
+  .post-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
+    gap: 40px clamp(32px, 6vw, 96px);
+  }
+
+  .post-head {
+    grid-column: 1;
+  }
+
+  .post-kicker {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    margin-bottom: 14px;
+  }
+
+  .post-lead {
+    font-size: clamp(1.6rem, 2.8vw, 2.6rem);
+    font-weight: 500;
+    font-stretch: 90%;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    max-width: 26ch;
+  }
+
+  .post-route {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+    margin-top: 28px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .post-route li {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .post-route :global(svg) {
+    color: var(--accent);
+  }
+
+  .facts {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: start;
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    display: grid;
+    gap: 24px;
+  }
+
+  .facts-globe {
+    position: relative;
+    justify-self: center;
+    width: min(100%, 300px);
+    margin: -10px 0 -6px;
+  }
+
+  .facts-globe img {
+    width: 100%;
+    height: auto;
+  }
+
+  .facts-cap {
+    position: absolute;
+    right: -6px;
+    top: 18px;
+    font-size: 20px;
+    color: var(--accent);
+    transform: rotate(8deg);
+  }
+
+  .facts-list {
+    display: grid;
+    margin: 0;
+  }
+
+  .facts-list div {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 10px;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+  }
+
+  .facts-list dt {
+    color: var(--muted);
+  }
+
+  .facts-list dd {
+    margin: 0;
+    text-align: right;
+    font-weight: 600;
+  }
+
+  .facts-list dd a:hover {
+    color: var(--accent);
+  }
+
+  .stars {
+    display: inline-flex;
+    gap: 2px;
+    color: var(--accent);
+  }
+
+  .facts-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .post-body {
+    grid-column: 1;
+    max-width: 68ch;
+  }
+
+  .prose {
+    font-size: 18px;
+    line-height: 1.75;
+    color: #d6d3cb;
+  }
+
+  .prose :global(p + p) {
+    margin-top: 1.1em;
+  }
+
+  .prose :global(h2) {
+    margin: 2em 0 0.6em;
+    font-size: clamp(1.7rem, 2.6vw, 2.4rem);
+    font-weight: 700;
+    font-stretch: 85%;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--text);
+  }
+
+  .prose :global(blockquote) {
+    margin: 1.6em 0;
+    padding-left: 22px;
+    border-left: 2px solid var(--accent);
+    font-family: var(--font-hand);
+    font-size: 26px;
+    line-height: 1.3;
+    color: var(--text);
+  }
+
+  .prose :global(blockquote p) {
+    margin: 0;
+  }
+
+  .prose :global(strong) {
+    color: var(--text);
+  }
+
+  .prose :global(ul) {
+    margin: 1em 0;
+    padding-left: 1.2em;
+    list-style: disc;
+  }
+
+  .prose :global(li + li) {
+    margin-top: 0.4em;
+  }
+
+  .prose :global(li::marker) {
+    color: var(--accent);
+  }
+
+  .board-wrap {
+    margin-top: clamp(72px, 9vw, 140px);
+  }
+
+  .board {
+    position: relative;
+    padding: clamp(36px, 5vw, 72px) clamp(20px, 4vw, 64px) clamp(44px, 5vw, 80px);
+    border-radius: 18px;
+    background-color: #b0804f;
+    background-image:
+      radial-gradient(ellipse at 50% 35%, rgb(255 225 180 / 0.16), transparent 65%),
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='260'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.5' numOctaves='3' seed='4'/%3E%3CfeColorMatrix values='0 0 0 0 0.3 0 0 0 0 0.18 0 0 0 0 0.08 0 0 0 -3.4 2.05'/%3E%3C/filter%3E%3Cfilter id='b'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' seed='11'/%3E%3CfeColorMatrix values='0 0 0 0 0.98 0 0 0 0 0.84 0 0 0 0 0.62 0 0 0 -3.6 1.9'/%3E%3C/filter%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.4' numOctaves='1' seed='2'/%3E%3CfeColorMatrix values='0 0 0 0 0.16 0 0 0 0 0.09 0 0 0 0 0.04 0 0 0 -4 2.6'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23a)' opacity='0.85'/%3E%3Crect width='100%25' height='100%25' filter='url(%23b)' opacity='0.7'/%3E%3Crect width='100%25' height='100%25' filter='url(%23c)' opacity='0.6'/%3E%3C/svg%3E");
+    box-shadow:
+      inset 0 0 0 12px #2b2018,
+      inset 0 0 0 13px rgb(255 255 255 / 0.08),
+      inset 0 26px 60px rgb(0 0 0 / 0.42),
+      inset 0 -10px 40px rgb(0 0 0 / 0.3),
+      0 40px 90px rgb(0 0 0 / 0.45);
+  }
+
+  .board-grid {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(36px, 4vw, 64px) clamp(16px, 2.4vw, 36px);
+    align-items: start;
+  }
+
+  .print {
+    position: relative;
+    padding: 9px 9px 10px;
+    background: #f3efe6;
+    box-shadow:
+      0 1px 1px rgb(0 0 0 / 0.25),
+      0 18px 34px rgb(0 0 0 / 0.42);
+    rotate: var(--r);
+    transition: rotate 0.7s var(--ease-out), translate 0.7s var(--ease-out), box-shadow 0.7s var(--ease-out);
+  }
+
+  .print:hover {
+    rotate: 0deg;
+    translate: 0 -6px;
+    box-shadow:
+      0 1px 1px rgb(0 0 0 / 0.25),
+      0 30px 50px rgb(0 0 0 / 0.5);
+  }
+
+  .print :global(.print-media) {
+    border-radius: 2px;
+    aspect-ratio: 3 / 2;
+  }
+
+  .p-0 {
+    grid-column: 1 / span 7;
+  }
+
+  .p-1 {
+    grid-column: 9 / span 4;
+    margin-top: clamp(0px, 5vw, 70px);
+  }
+
+  .p-1 :global(.print-media) {
+    aspect-ratio: 4 / 5;
+  }
+
+  .p-2 {
+    grid-column: 3 / span 5;
+  }
+
+  .p-2 :global(.print-media) {
+    aspect-ratio: 4 / 3;
+  }
+
+  .p-3 {
+    grid-column: 8 / span 5;
+    margin-top: clamp(0px, 4vw, 56px);
+  }
+
+  .p-4 {
+    grid-column: 2 / span 7;
+  }
+
+  .p-4 :global(.print-media) {
+    aspect-ratio: 16 / 9;
+  }
+
+  .pin {
+    position: absolute;
+    top: -8px;
+    left: calc(50% + var(--px, 0px));
+    z-index: 2;
+    width: 18px;
+    height: 18px;
+    margin-left: -9px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 34% 30%, #fff 0 9%, var(--pin) 34%, var(--pin-dark) 100%);
+    box-shadow: 4px 6px 6px rgb(0 0 0 / 0.42);
+  }
+
+  .pin--0 {
+    --pin: #ff6a3d;
+    --pin-dark: #7f2810;
+  }
+
+  .pin--1 {
+    --pin: #f2c14e;
+    --pin-dark: #7a5a0e;
+  }
+
+  .pin--2 {
+    --pin: #4cb5ae;
+    --pin-dark: #1d5753;
+  }
+
+  .pin--3 {
+    --pin: #ece9e1;
+    --pin-dark: #6f6a60;
+  }
+
+  .board-note {
+    position: absolute;
+    left: clamp(24px, 3vw, 48px);
+    bottom: clamp(28px, 3vw, 44px);
+    z-index: 3;
+    max-width: 210px;
+    padding: 16px 18px 14px;
+    background: #fdf3c8;
+    color: #2a2418;
+    rotate: -3deg;
+    box-shadow: 0 14px 26px rgb(0 0 0 / 0.35);
+  }
+
+  .board-note .pin {
+    --px: 0px;
+  }
+
+  .board-note-name {
+    font-size: 26px;
+    line-height: 1.05;
+  }
+
+  .board-note-date {
+    margin-top: 4px;
+    font-size: 17px;
+    color: #6b5a3a;
+  }
+
+  .pager {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: clamp(16px, 2vw, 28px);
+    margin-top: clamp(96px, 12vw, 180px);
+    padding-top: clamp(32px, 4vw, 56px);
+    padding-bottom: clamp(64px, 8vw, 120px);
+    border-top: 1px solid var(--line);
+  }
+
+  .pager-title {
+    grid-column: 1 / -1;
+    margin-bottom: clamp(8px, 2vw, 24px);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--muted);
+  }
+
+  .pager-link {
+    position: relative;
+    display: grid;
+    gap: 6px;
+    align-content: start;
+  }
+
+  .pager-link :global(.pager-media) {
+    aspect-ratio: 16 / 9;
+    margin-bottom: 12px;
+  }
+
+  .pager-link :global(.pager-media img) {
+    transition: scale 1.2s var(--ease-out), filter 0.6s;
+    filter: brightness(0.75);
+  }
+
+  .pager-link:hover :global(.pager-media img) {
+    scale: 1.04;
+    filter: none;
+  }
+
+  .pager-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  .pager-name {
+    font-size: clamp(2rem, 4.6vw, 4.4rem);
+    font-weight: 800;
+    font-stretch: 75%;
+    line-height: 0.9;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+  }
+
+  .pager-next {
+    text-align: right;
+    justify-items: end;
+  }
+
+  @media (max-width: 900px) {
+    .post-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .facts {
+      grid-column: 1;
+      grid-row: auto;
+      position: static;
+      grid-template-columns: 160px 1fr;
+      align-items: start;
+    }
+
+    .facts-tags {
+      grid-column: 1 / -1;
+    }
+
+    .board-grid > * {
+      grid-column: 1 / -1 !important;
+      margin-top: 0 !important;
+    }
+
+    .board {
+      padding-bottom: 150px;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .split-half {
+      width: 46vw;
+      height: 50svh;
+      margin-top: -25svh;
+    }
+
+    :global(.js) .split-tag {
+      top: calc(50% + 25svh - 20px);
+    }
+
+    .facts {
+      grid-template-columns: 1fr;
+    }
+
+    .facts-globe {
+      width: min(100%, 240px);
+    }
+
+    .print :global(.print-media),
+    .p-1 :global(.print-media) {
+      aspect-ratio: 4 / 3;
+    }
+
+    .pager {
+      grid-template-columns: 1fr;
+      gap: 56px;
+    }
+
+    .pager-next {
+      text-align: left;
+      justify-items: start;
+    }
+  }
+</style>
+
+<script>
+  import { gsap, reduced } from '../../scripts/motion';
+
+  const hero = document.querySelector<HTMLElement>('[data-split-hero]');
+  if (hero && !reduced) {
+    const left = hero.querySelector<HTMLElement>('[data-split-left]')!;
+    const right = hero.querySelector<HTMLElement>('[data-split-right]')!;
+    const leftMedia = left.querySelector<HTMLElement>('.media')!;
+    const rightMedia = right.querySelector<HTMLElement>('.media')!;
+    const title = hero.querySelector<HTMLElement>('[data-split-title]')!;
+    const tag = hero.querySelector<HTMLElement>('[data-split-tag]');
+    const narrow = window.matchMedia('(max-width: 700px)').matches;
+    const spread = narrow ? 110 : 150;
+
+    gsap.set([left, right], { xPercent: 0, rotation: 0, transform: 'none' });
+    gsap.set(leftMedia, { borderTopRightRadius: 0, borderBottomRightRadius: 0 });
+    gsap.set(rightMedia, { borderTopLeftRadius: 0, borderBottomLeftRadius: 0 });
+
+    gsap.from([left, right], { yPercent: 16, autoAlpha: 0, duration: 1.4, ease: 'expo.out', stagger: 0.08 });
+    if (tag) gsap.from(tag, { y: 20, autoAlpha: 0, duration: 1, ease: 'expo.out', delay: 0.5 });
+
+    gsap
+      .timeline({
+        scrollTrigger: { trigger: hero, start: 'top top', end: '+=110%', scrub: 0.6, pin: true, anticipatePin: 1 },
+      })
+      .to(left, { xPercent: -spread, rotation: -9, y: 30, ease: 'power2.in' }, 0)
+      .to(right, { xPercent: spread, rotation: 9, y: 30, ease: 'power2.in' }, 0)
+      .to(leftMedia, { borderTopRightRadius: 20, borderBottomRightRadius: 20, ease: 'none', duration: 0.15 }, 0)
+      .to(rightMedia, { borderTopLeftRadius: 20, borderBottomLeftRadius: 20, ease: 'none', duration: 0.15 }, 0)
+      .fromTo(title, { scale: 0.88 }, { scale: 1, ease: 'none' }, 0)
+      .to(tag, { autoAlpha: 0, y: 40, ease: 'power1.in', duration: 0.25 }, 0);
+  }
+</script>

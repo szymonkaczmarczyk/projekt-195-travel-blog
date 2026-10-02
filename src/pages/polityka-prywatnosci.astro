@@ -1,0 +1,64 @@
+---
+import Legal from '../layouts/Legal.astro';
+import { site } from '../data/meta';
+
+const summary = [
+  'Nie zbieram danych osobowych: nie ma formularzy, kont, komentarzy ani newslettera.',
+  'Nie używam cookies, analityki, reklam ani wtyczek społecznościowych.',
+  'Czcionki, zdjęcia i skrypty ładują się z tego samego serwera co strona.',
+  'Jedyny ślad wizyty to techniczne logi serwera prowadzone przez hosting.',
+];
+---
+
+<Legal
+  title="Polityka prywatności"
+  description="Jakie dane przetwarza blog Projekt 195. Krótko: prawie żadne. Bez cookies, analityki i formularzy."
+  note="bez ciasteczek i śledzenia"
+  lead="Projekt 195 to prywatny blog podróżniczy. Nie ma tu formularzy, kont ani reklam, więc o Twoich danych da się napisać niewiele. Poniżej to niewiele, opisane porządnie."
+  updated="2 października 2026"
+  summary={summary}
+>
+  <section data-reveal>
+    <h2>Kto odpowiada za dane</h2>
+    <p>Administratorem danych jest autor bloga {site.name} (dalej: „ja”). W każdej sprawie dotyczącej prywatności napisz na adres <a href={`mailto:${site.email}`}>{site.email}</a>.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Czego nie zbieram</h2>
+    <p>Na stronie nie ma formularza kontaktowego, newslettera, komentarzy, kont użytkowników ani sklepu. Nie korzystam z Google Analytics ani innych narzędzi statystycznych, nie wyświetlam reklam i nie osadzam wtyczek serwisów społecznościowych, map ani filmów z zewnętrznych platform.</p>
+    <p>Czcionki, zdjęcia i skrypty są serwowane z tego samego serwera co strona, więc Twoja przeglądarka nie łączy się przy okazji z firmami trzecimi.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Logi serwera</h2>
+    <p>Jak przy każdej stronie internetowej, serwer, na którym działa blog, automatycznie zapisuje podstawowe informacje o połączeniu: adres IP, datę i godzinę, adres otwieranej podstrony oraz typ przeglądarki i systemu. Bez tego strona nie mogłaby się wyświetlić, a logi pomagają też chronić ją przed nadużyciami i atakami.</p>
+    <p>Podstawą prawną jest mój prawnie uzasadniony interes, czyli zapewnienie działania i bezpieczeństwa strony (art. 6 ust. 1 lit. f RODO). Logi prowadzi firma hostingowa jako podmiot przetwarzający na moje zlecenie i przechowuje je przez ograniczony czas, po którym są usuwane. Nie łączę ich z innymi danymi i nie próbuję ustalać, kim są odwiedzający.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Cookies i pamięć przeglądarki</h2>
+    <p>Strona nie zapisuje plików cookies. Korzysta tylko z pamięci sesji przeglądarki (sessionStorage), w której zapamiętuje jedną informację: że animacja powitalna została już wyświetlona, żeby nie odtwarzać jej przy każdym powrocie na stronę główną.</p>
+    <p>Ten wpis nie zawiera żadnych danych o Tobie, nie opuszcza Twojego urządzenia i znika po zamknięciu karty.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Linki do innych stron</h2>
+    <p>Część linków prowadzi poza bloga, na przykład do oryginałów zdjęć w Wikimedia Commons i do treści licencji Creative Commons. Po przejściu na inną stronę obowiązują zasady prywatności jej właściciela.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Twoje prawa</h2>
+    <p>Masz prawo do:</p>
+    <ul>
+      <li>dostępu do swoich danych i otrzymania ich kopii,</li>
+      <li>sprostowania, usunięcia lub ograniczenia przetwarzania,</li>
+      <li>sprzeciwu wobec przetwarzania opartego na prawnie uzasadnionym interesie.</li>
+    </ul>
+    <p>Nie wiem, kim są osoby odwiedzające stronę, więc bez dodatkowych informacji od Ciebie zwykle nie będę w stanie powiązać wpisów w logach z konkretną osobą (art. 11 RODO). Jeśli uważasz, że Twoje dane są przetwarzane niezgodnie z prawem, możesz złożyć skargę do Prezesa Urzędu Ochrony Danych Osobowych, ul. Stawki 2, 00-193 Warszawa.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Zmiany</h2>
+    <p>Jeśli na stronie pojawi się coś, co zbiera dane, na przykład formularz kontaktowy albo statystyki odwiedzin, najpierw zaktualizuję ten dokument. Zasady korzystania z bloga opisuje osobno <a href="/regulamin/">Regulamin</a>.</p>
+  </section>
+</Legal>

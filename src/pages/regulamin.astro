@@ -1,0 +1,54 @@
+---
+import Legal from '../layouts/Legal.astro';
+import { site } from '../data/meta';
+
+const summary = [
+  'Blog jest prywatny, niekomercyjny i bezpłatny.',
+  'Nie trzeba zakładać konta ani podawać żadnych danych.',
+  'Relacje to moje subiektywne wrażenia, a nie porady podróżne.',
+  'Zdjęcia pochodzą z wolnych licencji, a ich autorzy są wymienieni w źródłach.',
+];
+---
+
+<Legal
+  title="Regulamin"
+  description="Zasady korzystania z bloga Projekt 195: bezpłatnie, bez konta, z poszanowaniem praw autorskich."
+  note="krótko i po ludzku"
+  lead="Zasady korzystania z bloga Projekt 195. Strona jest bezpłatna, nie wymaga rejestracji i niczego nie sprzedaje, więc regulamin jest krótki."
+  updated="2 października 2026"
+  summary={summary}
+>
+  <section data-reveal>
+    <h2>Czym jest {site.name}</h2>
+    <p>{site.name}: {site.claim} to prywatny blog podróżniczy prowadzony przez jego autora (dalej: „ja”) bez celu zarobkowego. Publikuję na nim relacje z podróży, zdjęcia i notatki z drogi. Nie prowadzę sprzedaży, nie przyjmuję płatności i nie wyświetlam reklam.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Korzystanie ze strony</h2>
+    <p>Z bloga może korzystać każdy, bezpłatnie i bez zakładania konta. Wystarczy urządzenie z dostępem do internetu i aktualna przeglądarka. Animacje i interaktywny globus działają najlepiej z włączonym JavaScriptem.</p>
+    <p>Korzystając ze strony, nie próbuj zakłócać jej działania, na przykład przez masowe, automatyczne pobieranie zasobów.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Treści i odpowiedzialność</h2>
+    <p>Relacje opisują moje doświadczenia i opinie z konkretnego momentu. Ceny, przepisy wizowe, warunki wjazdu i sytuacja bezpieczeństwa szybko się zmieniają, dlatego przed wyjazdem sprawdzaj aktualne informacje w oficjalnych źródłach, na przykład w komunikatach Ministerstwa Spraw Zagranicznych dla podróżujących.</p>
+    <p>Dbam o rzetelność wpisów, ale nie odpowiadam za decyzje podjęte wyłącznie na ich podstawie ani za treść stron, do których prowadzą linki zewnętrzne.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Prawa autorskie</h2>
+    <p>Teksty, układ graficzny i animacje strony są chronione prawem autorskim. Możesz cytować krótkie fragmenty z podaniem źródła i linkiem do wpisu. Kopiowanie całych relacji albo publikowanie ich w innych miejscach wymaga mojej zgody.</p>
+    <p>Zdjęcia pochodzą z Wikimedia Commons. Ich autorzy udostępnili je na wolnych licencjach, głównie Creative Commons, albo należą one do domeny publicznej. Pełna lista autorów, licencji i linków do oryginałów jest na stronie <a href="/zrodla-zdjec/">Źródła zdjęć</a>. Zdjęcia, które zmieniłem, na przykład przyciąłem albo rozdzieliłem na plany, udostępniam na tej samej licencji co oryginał.</p>
+    <p>Nazwy, kody i współrzędne krajów pochodzą z bazy world-countries na licencji ODbL, a granice państw z Natural Earth. Tekstura globusa to zdjęcia satelitarne NASA Blue Marble z domeny publicznej. Szczegóły także są na stronie źródeł.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Kontakt i zgłoszenia</h2>
+    <p>Uwagi, prośby o poprawkę i zgłoszenia naruszeń, w tym dotyczące praw do zdjęć, wyślij na adres <a href={`mailto:${site.email}`}>{site.email}</a>. Odpowiadam zwykle w ciągu 14 dni.</p>
+  </section>
+
+  <section data-reveal>
+    <h2>Postanowienia końcowe</h2>
+    <p>Regulamin obowiązuje od dnia publikacji. Mogę go zmienić, na przykład gdy na stronie pojawią się nowe funkcje, a aktualna wersja zawsze będzie dostępna pod tym adresem. W sprawach, których regulamin nie opisuje, stosuje się prawo polskie. Zasady dotyczące danych osobowych opisuje osobno <a href="/polityka-prywatnosci/">Polityka prywatności</a>.</p>
+  </section>
+</Legal>

@@ -1,0 +1,33 @@
+---
+import { Image } from 'astro:assets';
+import type { Photo } from '../lib/data';
+
+interface Props {
+  photo?: Photo;
+  alt?: string;
+  sizes: string;
+  widths?: number[];
+  class?: string;
+  loading?: 'lazy' | 'eager';
+  parallax?: number;
+  priority?: boolean;
+}
+
+const { photo, alt, sizes, widths = [400, 800, 1200, 1600], class: className, loading = 'lazy', parallax, priority = false } = Astro.props;
+---
+
+<div class:list={['media', className]}>
+  {photo && (
+    <Image
+      src={photo.src}
+      alt={alt ?? photo.alt}
+      widths={widths.filter((w) => w <= photo.src.width)}
+      sizes={sizes}
+      quality={72}
+      loading={priority ? 'eager' : loading}
+      fetchpriority={priority ? 'high' : undefined}
+      data-parallax={parallax}
+    />
+  )}
+  <slot />
+</div>

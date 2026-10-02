@@ -1,0 +1,152 @@
+---
+import Base from '../../layouts/Base.astro';
+import PageHead from '../../components/PageHead.astro';
+import CountryCard from '../../components/CountryCard.astro';
+import Icon from '../../components/Icon.astro';
+import { continents } from '../../data/meta';
+import { getVisits, continentStats, photosFor, plural } from '../../lib/data';
+import { ogFromPhoto } from '../../lib/og';
+
+export async function getStaticPaths() {
+  return continents.map((c) => ({ params: { slug: c.key } }));
+}
+
+const { slug } = Astro.params;
+const visits = await getVisits();
+const all = continentStats(visits);
+const current = all.find((c) => c.key === slug)!;
+const visitedCodes = new Set(current.visits.map((v) => v.country.code));
+const left = current.all.filter((c) => !visitedCodes.has(c.code));
+const photos = current.visits.slice(0, 3).map((v) => v.cover).filter((p) => p !== undefined);
+const share = Math.round((current.visited / current.total) * 100);
+const og = await ogFromPhoto(photosFor(current.photo)[0] ?? photos[0]);
+---
+
+<Base title={`${current.name}: odwiedzone kraje`} description={`${current.name} w Projekcie 195: ${current.visited} z ${current.total} krajów odwiedzonych. Relacje, zdjęcia i lista miejsc, które wciąż czekają na swoją kolej.`} image={og}>
+  <PageHead
+    title={current.name}
+    note={`${current.visited} z ${current.total}, czyli ${share}%`}
+    lead={left.length ? `Odwiedzone kraje kontynentu, od najświeższych. Na dole lista ${left.length} ${plural(left.length, 'kraju', 'krajów', 'krajów')}, które wciąż czekają.` : 'Kontynent zamknięty. Każdy kraj ma już swoją pieczątkę.'}
+    photos={photos}
+  />
+
+  <section class="wrap">
+    <div class="grid">
+      {current.visits.map((v) => (
+        <CountryCard visit={v} ratio="4 / 5" sizes="(max-width: 600px) 92vw, (max-width: 1000px) 46vw, 30vw" excerpt />
+      ))}
+    </div>
+  </section>
+
+  {left.length > 0 && (
+    <section class="wrap section ahead" aria-labelledby="ahead-title">
+      <h2 class="h-md" id="ahead-title" data-split>Jeszcze przede mną</h2>
+      <ul class="ahead-list" data-reveal>
+        {left.map((c) => <li>{c.name}</li>)}
+      </ul>
+    </section>
+  )}
+
+  <nav class="wrap others" aria-label="Inne kontynenty">
+    {all.filter((c) => c.key !== slug).map((c) => (
+      <a href={`/kontynenty/${c.key}/`} class="other">
+        <span class="other-name">{c.name}</span>
+        <span class="other-count">{c.visited}/{c.total}</span>
+        <Icon name="arrowRight" size={20} />
+      </a>
+    ))}
+  </nav>
+</Base>
+
+<style>
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: clamp(36px, 5vw, 64px) clamp(16px, 2vw, 28px);
+  }
+
+  .grid > :global(:nth-child(3n + 2)) {
+    margin-top: clamp(0px, 5vw, 72px);
+  }
+
+  .ahead {
+    margin-top: clamp(40px, 6vw, 80px);
+    border-top: 1px solid var(--line);
+  }
+
+  .ahead-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 28px;
+  }
+
+  .ahead-list li {
+    padding: 6px 14px;
+    border: 1px dashed var(--line-strong);
+    border-radius: 999px;
+    font-size: 15px;
+    color: var(--muted);
+  }
+
+  .others {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+    padding-block: 40px clamp(80px, 10vw, 140px);
+  }
+
+  .other {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 8px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition: border-color 0.3s, background-color 0.3s;
+  }
+
+  .other:hover {
+    border-color: var(--line-strong);
+    background: var(--bg-2);
+  }
+
+  .other-name {
+    font-weight: 700;
+    font-stretch: 85%;
+    font-size: 18px;
+    line-height: 1.1;
+  }
+
+  .other :global(svg) {
+    grid-row: 1 / span 2;
+    grid-column: 2;
+    align-self: center;
+    color: var(--accent);
+  }
+
+  .other-count {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 1000px) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .grid > :global(:nth-child(3n + 2)) {
+      margin-top: 0;
+    }
+
+    .others {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 560px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

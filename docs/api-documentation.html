@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Projekt 195 API — dokumentacja</title>
+<style>
+  :root {
+    --ink: #1f2937;
+    --muted: #4b5563;
+    --line: #d1d5db;
+    --head: #eef2fb;
+    --blue: #2563eb;
+    --code-bg: #111827;
+    --code-ink: #e5e7eb;
+    --chip: #f1f3f7;
+    --get: #2563eb;
+    --post: #059669;
+    --put: #d97706;
+    --patch: #7c3aed;
+    --delete: #dc2626;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  body {
+    margin: 0;
+    background: #fff;
+    color: var(--ink);
+    font: 14px/1.6 "Segoe UI", "Noto Sans", system-ui, -apple-system, sans-serif;
+  }
+  main { max-width: 820px; margin: 0 auto; padding: 56px 40px 80px; }
+  h1 { font-size: 30px; line-height: 1.2; margin: 0 0 6px; }
+  h2 {
+    font-size: 20px;
+    margin: 0 0 18px;
+    padding-bottom: 8px;
+    border-bottom: 3px solid var(--blue);
+  }
+  h3 { font-size: 16px; margin: 28px 0 10px; }
+  h4 { color: var(--blue); font-size: 13.5px; margin: 22px 0 8px; }
+  p { margin: 0 0 12px; }
+  .lead { color: var(--muted); margin-bottom: 18px; }
+  code {
+    font: 12.5px/1.5 "Cascadia Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+    background: var(--chip);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  pre {
+    margin: 0 0 16px;
+    padding: 16px 18px;
+    background: var(--code-bg);
+    color: var(--code-ink);
+    border-radius: 8px;
+    font: 12.5px/1.6 "Cascadia Mono", "JetBrains Mono", ui-monospace, Menlo, monospace;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  pre code { background: none; padding: 0; color: inherit; }
+  table { width: 100%; border-collapse: collapse; margin: 0 0 16px; font-size: 13.5px; }
+  th, td { border: 1px solid var(--line); padding: 9px 12px; text-align: left; vertical-align: top; }
+  th { background: var(--head); font-weight: 600; }
+  td:first-child code { white-space: nowrap; }
+  td table { margin: 8px 0 4px; }
+  .endpoint {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+  }
+  .endpoint p:last-child { margin-bottom: 0; }
+  .endpoint__line { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 8px; }
+  .badge {
+    display: inline-block;
+    min-width: 54px;
+    padding: 3px 10px;
+    border-radius: 5px;
+    color: #fff;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.02em;
+  }
+  .badge--get { background: var(--get); }
+  .badge--post { background: var(--post); }
+  .badge--put { background: var(--put); }
+  .badge--patch { background: var(--patch); }
+  .badge--delete { background: var(--delete); }
+  .lock { font-size: 12px; color: var(--muted); }
+  section { margin-top: 44px; }
+  .page { break-before: page; }
+  .toc { columns: 2; column-gap: 32px; padding-left: 18px; margin: 0 0 8px; }
+  .toc li { break-inside: avoid; margin-bottom: 2px; }
+  .note { color: var(--muted); font-size: 13px; }
+  @page { size: A4; margin: 18mm 16mm; }
+  @media print {
+    main { padding: 0; max-width: none; }
+    section { margin-top: 0; }
+    pre, table, .endpoint { break-inside: avoid; }
+    h2, h3, h4 { break-after: avoid; }
+  }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Projekt 195 API — dokumentacja</h1>
+<p class="lead">
+  Statyczne endpointy generowane podczas builda: <code>/data/globe.json</code>, <code>/data/earth.json</code>,
+  <code>/sitemap.xml</code>, <code>/robots.txt</code><br>
+  Oraz: model treści kraju, pliki danych, skrypty generujące i meta tagi stron.
+</p>
+<pre>https://&lt;twoja-domena&gt;
+http://localhost:4321   (lokalnie: npm run dev albo npm run preview)</pre>
+
+<h3>Spis treści</h3>
+<ol class="toc">
+  <li><a href="#auth">Dostęp i działanie</a></li>
+  <li><a href="#conv">Konwencje i błędy</a></li>
+  <li><a href="#globe">GET /data/globe.json</a></li>
+  <li><a href="#earth">GET /data/earth.json</a></li>
+  <li><a href="#country">Obiekt Kraj (countries.json)</a></li>
+  <li><a href="#sitemap">GET /sitemap.xml</a></li>
+  <li><a href="#robots">GET /robots.txt</a></li>
+  <li><a href="#content">Model treści: plik kraju</a></li>
+  <li><a href="#photos">Zdjęcia: photos.json i alts.json</a></li>
+  <li><a href="#meta">Ustawienia: meta.ts i SITE_URL</a></li>
+  <li><a href="#seo">Meta tagi i Open Graph</a></li>
+  <li><a href="#scripts">Skrypty generujące</a></li>
+  <li><a href="#howto">Dodanie kraju krok po kroku</a></li>
+</ol>
+
+<section id="auth">
+  <h2>Dostęp i działanie</h2>
+  <p>
+    Projekt 195 nie ma serwera aplikacji. Wszystkie endpointy to <strong>pliki statyczne</strong>, które Astro zapisuje do
+    <code>dist/</code> podczas <code>npm run build</code>. Po wdrożeniu serwuje je zwykły hosting statyczny, tak samo jak
+    obrazki i HTML. Dane zmieniają się tylko przy kolejnym buildzie.
+  </p>
+  <p>
+    Żaden endpoint nie wymaga uwierzytelniania, nagłówków ani kluczy. Strona nie ustawia ciasteczek i nie ma sesji.
+  </p>
+  <table>
+    <tr><th>Cecha</th><th>Opis</th></tr>
+    <tr><td>Metody</td><td>Tylko <code>GET</code> (i <code>HEAD</code>, jeśli hosting go obsługuje). Nie ma endpointów zapisujących dane.</td></tr>
+    <tr><td>Nagłówki żądania</td><td>Nie są wymagane. Typ odpowiedzi wynika z rozszerzenia pliku i ustawień hostingu.</td></tr>
+    <tr><td>CORS</td><td>Zależy od hostingu. Domyślnie pliki są przeznaczone dla tej samej domeny, czyli dla skryptów strony.</td></tr>
+    <tr><td>Cache</td><td>Zależy od hostingu. Pliki w <code>/_astro/</code> mają hash w nazwie i mogą być cache'owane na stałe; <code>/data/*.json</code> zmieniają się przy każdym buildzie.</td></tr>
+    <tr><td>Limity</td><td>Brak limitów po stronie projektu. Ewentualne limity ustala hosting.</td></tr>
+  </table>
+  <p>Przykład (curl):</p>
+<pre>curl https://&lt;twoja-domena&gt;/data/globe.json
+
+curl -I http://localhost:4321/data/earth.json
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 50518</pre>
+  <p class="note">
+    Endpointy <code>/data/*.json</code> są przeznaczone dla globusów na stronie. Można je czytać z zewnątrz, ale ich kształt
+    jest podporządkowany rozmiarowi pliku (krótkie klucze), a nie wygodzie integracji.
+  </p>
+</section>
+
+<section id="conv" class="page">
+  <h2>Konwencje i błędy</h2>
+  <table>
+    <tr><th>Zasada</th><th>Opis</th></tr>
+    <tr><td>Format</td><td>JSON w UTF-8 dla <code>/data/*.json</code>, XML dla mapy strony, czysty tekst dla <code>robots.txt</code>.</td></tr>
+    <tr><td>Kod ISO3</td><td>Trzyliterowy kod kraju (ISO 3166-1 alfa-3), np. <code>ISL</code>. Klucz w <code>countries.json</code>, <code>photos.json</code> i we frontmatterze.</td></tr>
+    <tr><td>Kod numeryczny</td><td>Pole <code>id</code> w JSON-ach to kod ISO 3166-1 numeryczny jako tekst z zerami wiodącymi (<code>"004"</code>, <code>"352"</code>). Takich samych identyfikatorów używa world-atlas.</td></tr>
+    <tr><td>Slug</td><td>Polska nazwa kraju małymi literami, bez znaków diakrytycznych, z myślnikami (<code>bosnia-i-hercegowina</code>). Adres strony kraju: <code>/kraje/{slug}/</code>.</td></tr>
+    <tr><td>Data wizyty</td><td>We frontmatterze <code>YYYY-MM-DD</code>. W JSON-ach jako polski miesiąc i rok (<code>"czerwiec 2015"</code>). Kraj domowy ma wartość <code>"dom"</code>.</td></tr>
+    <tr><td>Współrzędne</td><td><code>lat</code> i <code>lng</code> w stopniach dziesiętnych, przybliżony środek kraju.</td></tr>
+    <tr><td>Obrazki</td><td>Ścieżki zaczynające się od <code>/_astro/</code> to pliki wygenerowane przez <code>astro:assets</code>. Ich nazwy zawierają hash i zmieniają się przy zmianie pliku źródłowego.</td></tr>
+  </table>
+  <p>Błędy nie mają formatu JSON: nieistniejący adres zwraca stronę <code>404.html</code> z kodem HTTP 404.</p>
+<pre>curl -s -o /dev/null -w "%{http_code} %{content_type}\n" http://localhost:4321/data/nie-ma.json
+404 text/html</pre>
+  <table>
+    <tr><th>Kod</th><th>Kiedy</th></tr>
+    <tr><td><code>200</code></td><td>Plik istnieje.</td></tr>
+    <tr><td><code>304</code></td><td>Plik się nie zmienił od ostatniego pobrania (<code>If-None-Match</code> / <code>If-Modified-Since</code>), jeśli hosting to obsługuje.</td></tr>
+    <tr><td><code>404</code></td><td>Nie ma takiego pliku ani strony. Treść to strona błędu w HTML.</td></tr>
+  </table>
+</section>
+
+<section id="globe" class="page">
+  <h2>GET /data/globe.json</h2>
+  <div class="endpoint">
+    <div class="endpoint__line"><span class="badge badge--get">GET</span><code>/data/globe.json</code></div>
+    <p>Lekka lista wszystkich 195 krajów ze statusem odwiedzin. Używa jej globus na stronie głównej (canvas, d3-geo) do kolorowania krajów, szpilek i podpowiedzi. Bez parametrów.</p>
+  </div>
+  <h4>Przykład żądania</h4>
+<pre>GET https://&lt;twoja-domena&gt;/data/globe.json</pre>
+  <h4>Odpowiedź — błąd (404)</h4>
+<pre>Strona 404.html, Content-Type: text/html (np. literówka w adresie)</pre>
+  <h4>Odpowiedź — sukces (skrócony przykład)</h4>
+<pre>{
+  "latest": "496",
+  "countries": [
+    { "id": "004", "n": "Afganistan", "s": "afganistan", "lat": 33, "lng": 65, "v": null },
+    { "id": "352", "n": "Islandia", "s": "islandia", "lat": 65, "lng": -18, "v": "czerwiec 2015" },
+    { "id": "616", "n": "Polska", "s": "polska", "lat": 52, "lng": 20, "v": "dom" },
+    …
+  ]
+}</pre>
+  <h4>Znaczenie kluczy w odpowiedzi</h4>
+  <table>
+    <tr><th>Klucz</th><th>Opis</th></tr>
+    <tr><td><code>latest</code></td><td>Kod numeryczny ostatnio odwiedzonego kraju (bez kraju domowego). Globus startuje obrócony w jego stronę.</td></tr>
+    <tr><td><code>countries</code></td><td>Tablica 195 krajów, alfabetycznie po polskiej nazwie.</td></tr>
+    <tr><td><code>id</code></td><td>Kod ISO 3166-1 numeryczny, zgodny z <code>id</code> geometrii w <code>/data/world-110m.json</code>.</td></tr>
+    <tr><td><code>n</code></td><td>Polska nazwa kraju.</td></tr>
+    <tr><td><code>s</code></td><td>Slug. Dla odwiedzonego kraju strona relacji to <code>/kraje/{s}/</code>.</td></tr>
+    <tr><td><code>lat</code> / <code>lng</code></td><td>Środek kraju, miejsce szpilki.</td></tr>
+    <tr><td><code>v</code></td><td>Miesiąc i rok pierwszej wizyty, <code>"dom"</code> dla kraju domowego albo <code>null</code>, jeśli kraj jest jeszcze przed nami.</td></tr>
+  </table>
+</section>
+
+<section id="earth" class="page">
+  <h2>GET /data/earth.json</h2>
+  <div class="endpoint">
+    <div class="endpoint__line"><span class="badge badge--get">GET</span><code>/data/earth.json</code></div>
+    <p>Dane dla globusa WebGL na <code>/globus/</code>: lista krajów rozszerzona o kontynent, zdjęcie i zajawkę oraz tablica cech mapy identyfikatorów, potrzebna do wybierania kraju kliknięciem. Bez parametrów.</p>
+  </div>
+  <h4>Przykład żądania</h4>
+<pre>GET https://&lt;twoja-domena&gt;/data/earth.json</pre>
+  <h4>Odpowiedź — sukces (skrócony przykład)</h4>
+<pre>{
+  "latest": "496",
+  "features": [
+    ["716", "Zimbabwe"],
+    ["894", "Zambia"],
+    ["887", "Jemen"],
+    …
+  ],
+  "countries": [
+    {
+      "id": "352",
+      "n": "Islandia",
+      "s": "islandia",
+      "lat": 65,
+      "lng": -18,
+      "k": "europa",
+      "c": "Europa",
+      "v": "czerwiec 2015",
+      "img": "/_astro/1.BqGEIE_Z_1bT1rL.webp",
+      "alt": "Góra Kirkjufell nad zatoką na zachodzie Islandii",
+      "ex": "Szesnaście dni na Ring Road, czternaście wodospadów, zero nocy. …"
+    },
+    {
+      "id": "004", "n": "Afganistan", "s": "afganistan", "lat": 33, "lng": 65,
+      "k": "azja", "c": "Azja", "v": null, "img": null, "alt": null, "ex": null
+    },
+    …
+  ]
+}</pre>
+  <h4>Znaczenie kluczy w odpowiedzi</h4>
+  <table>
+    <tr><th>Klucz</th><th>Opis</th></tr>
+    <tr><td><code>latest</code></td><td>Jak w <code>/data/globe.json</code>.</td></tr>
+    <tr><td><code>features</code></td><td>241 par <code>[id, nazwa]</code>: wszystkie obszary z mapy identyfikatorów, łącznie z terytoriami spoza listy 195. <strong>Indeks w tablicy + 1 = wartość piksela</strong> w <code>/img/earth/ids-2048.png</code> i <code>ids-4096.png</code>. Piksel o wartości 0 to ocean.</td></tr>
+    <tr><td><code>countries</code></td><td>195 krajów. Pola <code>id</code>, <code>n</code>, <code>s</code>, <code>lat</code>, <code>lng</code>, <code>v</code> jak w <code>/data/globe.json</code>.</td></tr>
+    <tr><td><code>k</code> / <code>c</code></td><td>Klucz kontynentu (<code>europa</code>, <code>azja</code>, <code>afryka</code>, <code>ameryka-polnocna</code>, <code>ameryka-poludniowa</code>, <code>oceania</code>) i jego polska nazwa.</td></tr>
+    <tr><td><code>img</code></td><td>Okładka kraju, WebP o szerokości 400 px. <code>null</code> dla krajów nieodwiedzonych.</td></tr>
+    <tr><td><code>alt</code></td><td>Polski opis okładki z <code>src/data/alts.json</code>.</td></tr>
+    <tr><td><code>ex</code></td><td>Zajawka relacji (pole <code>excerpt</code> z pliku kraju).</td></tr>
+  </table>
+  <p class="note">Globus wybiera teksturę 4096 px, gdy ekran jest duży, a karta graficzna obsługuje taki rozmiar; w przeciwnym razie 2048 px.</p>
+</section>
+
+<section id="country" class="page">
+  <h3 style="margin-top:0">Obiekt Kraj (src/data/countries.json) — znaczenie kluczy</h3>
+  <p>Źródłowa lista 195 krajów (193 państwa ONZ oraz Watykan i Palestyna), wygenerowana przez <code>npm run countries</code> z bazy world-countries. Z niej powstają oba endpointy JSON i strony kontynentów.</p>
+<pre>{
+  "code": "ISL", "iso2": "IS", "ccn3": "352",
+  "slug": "islandia", "name": "Islandia", "nameEn": "Iceland",
+  "continent": "europa", "subregion": "Northern Europe",
+  "lat": 65, "lng": -18, "area": 103000,
+  "flag": "🇮🇸", "landlocked": false
+}</pre>
+  <table>
+    <tr><th>Klucz</th><th>Opis</th></tr>
+    <tr><td><code>code</code> / <code>iso2</code> / <code>ccn3</code></td><td>Kody ISO 3166-1: alfa-3, alfa-2 i numeryczny.</td></tr>
+    <tr><td><code>slug</code></td><td>Adres strony kraju i nazwa pliku w <code>src/content/kraje/</code>.</td></tr>
+    <tr><td><code>name</code> / <code>nameEn</code></td><td>Nazwa polska (z poprawkami w skrypcie, np. „Czechy”, „Dominikana”) i angielska.</td></tr>
+    <tr><td><code>continent</code></td><td>Jeden z sześciu kluczy kontynentu. Ameryka Środkowa i Karaiby należą do <code>ameryka-polnocna</code>.</td></tr>
+    <tr><td><code>subregion</code></td><td>Podregion według world-countries, po angielsku.</td></tr>
+    <tr><td><code>lat</code> / <code>lng</code></td><td>Przybliżony środek kraju.</td></tr>
+    <tr><td><code>area</code></td><td>Powierzchnia w km², pokazywana w tabeli faktów.</td></tr>
+    <tr><td><code>flag</code> / <code>landlocked</code></td><td>Emoji flagi i informacja, czy kraj nie ma dostępu do morza.</td></tr>
+  </table>
+  <p class="note">Plik jest utworem pochodnym bazy world-countries na licencji ODbL 1.0 i jest udostępniany na tej samej licencji.</p>
+</section>
+
+<section id="sitemap" class="page">
+  <h2>GET /sitemap.xml</h2>
+  <div class="endpoint">
+    <div class="endpoint__line"><span class="badge badge--get">GET</span><code>/sitemap.xml</code></div>
+    <p>Mapa strony w formacie sitemaps.org z 122 adresami. Generuje ją <code>src/pages/sitemap.xml.ts</code> z tych samych danych co strony, więc nowy kraj pojawia się w niej automatycznie.</p>
+  </div>
+  <h4>Przykład żądania</h4>
+<pre>GET https://&lt;twoja-domena&gt;/sitemap.xml</pre>
+  <h4>Odpowiedź — sukces (skrócony przykład)</h4>
+<pre>&lt;?xml version="1.0" encoding="UTF-8"?&gt;
+&lt;urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"&gt;
+  &lt;url&gt;&lt;loc&gt;https://projekt195.pl/&lt;/loc&gt;&lt;priority&gt;1.0&lt;/priority&gt;&lt;/url&gt;
+  &lt;url&gt;&lt;loc&gt;https://projekt195.pl/kraje/&lt;/loc&gt;&lt;priority&gt;0.8&lt;/priority&gt;&lt;/url&gt;
+  &lt;url&gt;&lt;loc&gt;https://projekt195.pl/globus/&lt;/loc&gt;&lt;priority&gt;0.8&lt;/priority&gt;&lt;/url&gt;
+  …
+&lt;/urlset&gt;</pre>
+  <h4>Co trafia do mapy</h4>
+  <table>
+    <tr><th>Adresy</th><th>Priorytet</th><th>Liczba</th></tr>
+    <tr><td><code>/</code></td><td>1.0</td><td>1</td></tr>
+    <tr><td><code>/kraje/</code>, <code>/globus/</code>, <code>/o-projekcie/</code></td><td>0.8</td><td>3</td></tr>
+    <tr><td><code>/kraje/{slug}/</code></td><td>0.7</td><td>104</td></tr>
+    <tr><td><code>/kontynenty/{klucz}/</code>, <code>/kolekcje/{klucz}/</code></td><td>0.6</td><td>6 + 6</td></tr>
+    <tr><td><code>/polityka-prywatnosci/</code>, <code>/regulamin/</code></td><td>0.2</td><td>2</td></tr>
+  </table>
+  <p class="note">Poza mapą są celowo <code>/zrodla-zdjec/</code> (ma <code>noindex</code>) i strona 404. Mapa nie podaje <code>lastmod</code>, bo strona nie śledzi dat zmian treści, a data wizyty nie jest datą zmiany strony.</p>
+</section>
+
+<section id="robots" class="page">
+  <h2>GET /robots.txt</h2>
+  <div class="endpoint">
+    <div class="endpoint__line"><span class="badge badge--get">GET</span><code>/robots.txt</code></div>
+    <p>Reguły dla robotów wyszukiwarek, generowane przez <code>src/pages/robots.txt.ts</code>. Wpuszcza wszystkie roboty i wskazuje pełny adres mapy strony zbudowany z <code>SITE_URL</code>.</p>
+  </div>
+  <h4>Przykład żądania</h4>
+<pre>GET https://&lt;twoja-domena&gt;/robots.txt</pre>
+  <h4>Odpowiedź — sukces</h4>
+<pre>User-agent: *
+Allow: /
+
+Sitemap: https://projekt195.pl/sitemap.xml</pre>
+  <p class="note">Nic nie jest blokowane, także <code>/data/</code> i <code>/img/</code>: wyszukiwarki potrzebują tych plików, żeby poprawnie wyrenderować strony z globusem.</p>
+</section>
+
+<section id="content" class="page">
+  <h2>Model treści: plik kraju</h2>
+  <div class="endpoint">
+    <div class="endpoint__line"><code>src/content/kraje/{slug}.md</code></div>
+    <p>Jeden plik to jeden odwiedzony kraj. Frontmatter jest walidowany schematem zod w <code>src/content.config.ts</code>; błąd w polu zatrzymuje build z komunikatem. Treść pod frontmatterem to relacja w markdownie.</p>
+  </div>
+  <h4>Pola frontmattera</h4>
+  <table>
+    <tr><th>Parametr</th><th>Wymagany</th><th>Opis</th></tr>
+    <tr><td><code>country</code></td><td>tak</td><td>Kod ISO3 z <code>countries.json</code>, dokładnie 3 znaki. Nieznany kod zatrzymuje build.</td></tr>
+    <tr><td><code>visited</code></td><td>tak</td><td>Data pierwszej wizyty, <code>YYYY-MM-DD</code>. Decyduje o kolejności na listach.</td></tr>
+    <tr><td><code>days</code></td><td>tak</td><td>Liczba dni na miejscu, liczba całkowita ≥ 0.</td></tr>
+    <tr><td><code>rating</code></td><td>tak</td><td>Ocena od 1 do 5 (gwiazdki w tabeli faktów).</td></tr>
+    <tr><td><code>excerpt</code></td><td>tak</td><td>Zajawka: karta kraju, opis meta strony i karta na globusie. Najlepiej 80 do 155 znaków.</td></tr>
+    <tr><td><code>title</code></td><td>nie</td><td>Tytuł relacji i tytuł strony. Domyślnie „{nazwa}: relacja z podróży”.</td></tr>
+    <tr><td><code>route</code></td><td>nie</td><td>Trasa, punkty rozdzielone znakiem <code>·</code>, np. <code>Reykjavík · Ring Road · Fiordy Zachodnie</code>.</td></tr>
+    <tr><td><code>top</code></td><td>nie</td><td><code>true</code> dodaje kraj do kolekcji „Najlepsze”. Domyślnie <code>false</code>.</td></tr>
+    <tr><td><code>home</code></td><td>nie</td><td><code>true</code> tylko dla kraju domowego: nie liczy się do „ostatnich pieczątek”, ma etykietę „punkt zero”.</td></tr>
+    <tr><td><code>tags</code></td><td>nie</td><td>Kolekcje tematyczne:
+      <table>
+        <tr><th>Wartość</th><th>Znaczenie</th></tr>
+        <tr><td><code>wyspy</code></td><td>Wyspiarskie</td></tr>
+        <tr><td><code>gory</code></td><td>Góry i wysoko</td></tr>
+        <tr><td><code>pustynie</code></td><td>Pustynie</td></tr>
+        <tr><td><code>dzika-przyroda</code></td><td>Dzika przyroda</td></tr>
+        <tr><td><code>tropiki</code></td><td>Tropiki</td></tr>
+      </table>
+    </td></tr>
+    <tr><td><code>photoSearch</code></td><td>nie</td><td>2 do 5 haseł dla <code>npm run photos</code>, najlepiej nazwy miejsc po angielsku albo lokalnie.</td></tr>
+  </table>
+  <h4>Przykład</h4>
+<pre>---
+country: ISL
+visited: 2015-06-10
+days: 16
+rating: 5
+top: true
+tags: ["wyspy","gory"]
+title: "Islandia: szesnaście dni bez nocy"
+route: "Reykjavík · Ring Road · Fiordy Zachodnie"
+excerpt: "Szesnaście dni na Ring Road, czternaście wodospadów, zero nocy. …"
+photoSearch: ["Kirkjufell","Jökulsárlón","Landmannalaugar","Skógafoss","Vestrahorn Stokksnes"]
+---
+
+Islandia była pierwszym krajem, w którym zrozumiałem, że krajobraz może być wydarzeniem. …
+
+## Ring Road w małym samochodzie</pre>
+  <h4>Odpowiedź — błąd walidacji (build)</h4>
+<pre>[InvalidContentEntryDataError] kraje → islandia data does not match collection schema.
+  rating: Too big: expected number to be &lt;=5
+  Location:
+    src/content/kraje/islandia.md:0:0</pre>
+  <p class="note">W relacji działają śródtytuły <code>##</code>, listy i cytaty <code>&gt;</code>, które na stronie wyglądają jak odręczne notatki.</p>
+</section>
+
+<section id="photos" class="page">
+  <h2>Zdjęcia: photos.json i alts.json</h2>
+  <p>Zdjęcia krajów leżą w <code>src/assets/photos/{iso3}/{n}.webp</code>. Pierwsze zdjęcie kraju jest okładką. Metadane są w dwóch plikach, żeby skrypt odświeżający licencje nie nadpisywał ręcznie pisanych opisów.</p>
+  <h4>src/data/photos.json (generuje npm run photos)</h4>
+<pre>{
+  "ISL": [
+    {
+      "file": "isl/1.webp",
+      "width": 1920,
+      "height": 1278,
+      "title": "Kirkjufell, Iceland, 20240714 1631 0713",
+      "author": "Jakub Hałun",
+      "authorUrl": "https://commons.wikimedia.org/wiki/User:Jakubhal",
+      "license": "CC BY 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by/4.0",
+      "source": "https://commons.wikimedia.org/wiki/File:Kirkjufell,_Iceland,_20240714_1631_0713.jpg"
+    },
+    …
+  ]
+}</pre>
+  <table>
+    <tr><th>Klucz</th><th>Opis</th></tr>
+    <tr><td><code>file</code></td><td>Ścieżka względem <code>src/assets/photos/</code>.</td></tr>
+    <tr><td><code>width</code> / <code>height</code></td><td>Wymiary miniatury pobranej z Commons (zwykle szerokość 1920 px). Zapisany plik jest przeskalowany do szerokości 1600 px z zachowaniem proporcji.</td></tr>
+    <tr><td><code>title</code></td><td>Tytuł pliku z Commons. Używany jako zapasowy <code>alt</code>.</td></tr>
+    <tr><td><code>author</code> / <code>authorUrl</code></td><td>Autor i link do jego profilu albo <code>null</code>.</td></tr>
+    <tr><td><code>license</code> / <code>licenseUrl</code></td><td>Krótka nazwa licencji i link do jej treści albo <code>null</code> (domena publiczna).</td></tr>
+    <tr><td><code>source</code></td><td>Strona pliku na Wikimedia Commons.</td></tr>
+  </table>
+  <h4>src/data/alts.json (pisany ręcznie)</h4>
+<pre>{
+  "isl/1.webp": "Góra Kirkjufell nad zatoką na zachodzie Islandii",
+  "isl/2.webp": "Kry lodowe na lagunie lodowcowej Jökulsárlón",
+  …
+}</pre>
+  <p class="note">Każde zdjęcie z <code>photos.json</code> powinno mieć wpis w <code>alts.json</code>. Brakujący opis nie psuje builda, ale wtedy <code>alt</code> to angielski tytuł z Commons. Wszystkie dane z <code>photos.json</code> trafiają automatycznie na stronę <code>/zrodla-zdjec/</code>.</p>
+</section>
+
+<section id="meta" class="page">
+  <h2>Ustawienia: meta.ts i SITE_URL</h2>
+  <h4>Zmienna środowiskowa</h4>
+  <table>
+    <tr><th>Parametr</th><th>Wymagany</th><th>Opis</th></tr>
+    <tr><td><code>SITE_URL</code></td><td>przy wdrożeniu</td><td>Pełny adres strony, np. <code>https://projekt195.pl</code>. Czytany w <code>astro.config.mjs</code> z <code>.env</code> albo ze zmiennej środowiskowej przy buildzie. Używany w adresach kanonicznych, Open Graph, <code>sitemap.xml</code> i <code>robots.txt</code>. Domyślnie <code>https://projekt195.pl</code>.</td></tr>
+  </table>
+<pre>SITE_URL=https://moja-domena.pl npm run build</pre>
+  <h4>src/data/meta.ts</h4>
+  <table>
+    <tr><th>Eksport</th><th>Opis</th></tr>
+    <tr><td><code>site</code></td><td><code>name</code>, <code>claim</code>, <code>total</code> (195), <code>started</code> (rok startu), <code>next</code> (następny cel podróży), <code>email</code> (adres kontaktowy w dokumentach prawnych), <code>description</code> (opis domyślny).</td></tr>
+    <tr><td><code>continents</code></td><td>Sześć kontynentów: <code>key</code>, <code>name</code>, <code>photo</code> (kod ISO3 kraju, którego okładka ilustruje kontynent).</td></tr>
+    <tr><td><code>collectionsMeta</code></td><td>Kolekcje: <code>key</code> (tag albo <code>najlepsze</code>), <code>name</code>, <code>note</code> (odręczny dopisek), <code>description</code>, <code>photo</code>.</td></tr>
+    <tr><td><code>nav</code></td><td>Linki menu głównego, używane też w stopce i mapie strony.</td></tr>
+    <tr><td><code>legal</code></td><td>Linki do polityki prywatności i regulaminu w stopce.</td></tr>
+  </table>
+  <p class="note">Dodanie nowej kolekcji wymaga wpisu w <code>collectionsMeta</code> i dopisania klucza do <code>tagKeys</code> w <code>src/content.config.ts</code>.</p>
+</section>
+
+<section id="seo" class="page">
+  <h2>Meta tagi i Open Graph</h2>
+  <p>Wszystkie strony korzystają z <code>src/layouts/Base.astro</code>, który na podstawie propsów generuje komplet znaczników w <code>&lt;head&gt;</code>.</p>
+  <h4>Propsy Base.astro</h4>
+  <table>
+    <tr><th>Parametr</th><th>Wymagany</th><th>Opis</th></tr>
+    <tr><td><code>title</code></td><td>nie</td><td>Tytuł strony; w <code>&lt;title&gt;</code> dostaje dopisek <code>| Projekt 195</code>. Brak = „Projekt 195: Złapać Świat”.</td></tr>
+    <tr><td><code>description</code></td><td>nie</td><td>Opis meta i Open Graph. Brak = <code>site.description</code>.</td></tr>
+    <tr><td><code>image</code></td><td>nie</td><td>Obiekt <code>{ src, alt }</code>. Brak = <code>/og/default.jpg</code>. Kadr ze zdjęcia daje <code>ogFromPhoto(photo)</code> z <code>src/lib/og.ts</code> (1200×630, JPG).</td></tr>
+    <tr><td><code>type</code></td><td>nie</td><td><code>website</code> (domyślnie) albo <code>article</code> (strony krajów).</td></tr>
+    <tr><td><code>noindex</code></td><td>nie</td><td>Dodaje <code>&lt;meta name="robots" content="noindex, follow"&gt;</code>. Używane na <code>/zrodla-zdjec/</code> i stronie 404.</td></tr>
+    <tr><td><code>headerTone</code></td><td>nie</td><td><code>overlay</code> (przezroczysty nagłówek nad hero) albo <code>solid</code>.</td></tr>
+  </table>
+  <h4>Wynik dla strony kraju (skrócony przykład)</h4>
+<pre>&lt;title&gt;Islandia: szesnaście dni bez nocy | Projekt 195&lt;/title&gt;
+&lt;meta name="description" content="Szesnaście dni na Ring Road, …"&gt;
+&lt;link rel="canonical" href="https://projekt195.pl/kraje/islandia/"&gt;
+&lt;meta property="og:type" content="article"&gt;
+&lt;meta property="og:locale" content="pl_PL"&gt;
+&lt;meta property="og:image" content="https://projekt195.pl/_astro/1.….jpg"&gt;
+&lt;meta property="og:image:width" content="1200"&gt;
+&lt;meta property="og:image:height" content="630"&gt;
+&lt;meta property="og:image:alt" content="Góra Kirkjufell nad zatoką na zachodzie Islandii"&gt;
+&lt;meta name="twitter:card" content="summary_large_image"&gt;</pre>
+  <h4>Skąd pochodzi obrazek Open Graph</h4>
+  <table>
+    <tr><th>Strona</th><th>Obrazek</th></tr>
+    <tr><td><code>/</code>, dokumenty prawne, 404, źródła</td><td><code>public/og/default.jpg</code>: tytuł za grzbietem Dolomitów (zrzut hero).</td></tr>
+    <tr><td><code>/globus/</code></td><td><code>public/og/globus.jpg</code>: zrzut globusa.</td></tr>
+    <tr><td><code>/kraje/{slug}/</code></td><td>Okładka kraju.</td></tr>
+    <tr><td><code>/kontynenty/{klucz}/</code></td><td>Okładka kraju z pola <code>photo</code> kontynentu.</td></tr>
+    <tr><td><code>/kolekcje/{klucz}/</code>, <code>/kraje/</code>, <code>/o-projekcie/</code></td><td>Pierwsze zdjęcie z nagłówka strony.</td></tr>
+  </table>
+  <p class="note">Dwa pliki w <code>public/og/</code> to statyczne zrzuty ekranu 1200×630. Po zmianie hero albo globusa trzeba je zrobić ponownie.</p>
+</section>
+
+<section id="scripts" class="page">
+  <h2>Skrypty generujące</h2>
+  <p>Skrypty w <code>scripts/</code> uruchamia się ręcznie (Node 22+, sharp). Ich wyniki są w repozytorium, więc zwykły build ich nie potrzebuje.</p>
+  <h4>npm run photos (scripts/fetch-photos.mjs)</h4>
+  <p>Dla każdego kraju bez kompletu zdjęć (co najmniej 3 albo tyle, ile haseł w <code>photoSearch</code>) szuka plików w Wikimedia Commons: najpierw wśród wyróżnionych, potem jakościowych, na końcu w całym zbiorze. Zapisuje WebP do <code>src/assets/photos/</code> i metadane do <code>photos.json</code>.</p>
+  <table>
+    <tr><th>Parametr</th><th>Wymagany</th><th>Opis</th></tr>
+    <tr><td><code>--only=ISL,NOR</code></td><td>nie</td><td>Tylko wskazane kraje (kody ISO3), także gdy mają już zdjęcia.</td></tr>
+    <tr><td><code>--force</code></td><td>nie</td><td>Pobiera od nowa dla wszystkich krajów.</td></tr>
+    <tr><td><code>--meta</code></td><td>nie</td><td>Nie pobiera plików, tylko odświeża autorów i licencje (<code>npm run photos:meta</code>).</td></tr>
+  </table>
+<pre>npm run photos -- --only=ISL</pre>
+  <p class="note">Nietrafione zdjęcia wyklucza się w <code>scripts/photo-overrides.json</code> (<code>exclude</code>: tytuły plików), a konkretne pliki można wymusić w <code>files.ISO3</code>. Skrypt przedstawia się ogólnym User-Agentem zgodnie z zasadami API Wikimedia i nie wysyła żadnych danych osobowych.</p>
+
+  <h4>npm run countries (scripts/build-countries.mjs)</h4>
+  <p>Generuje <code>src/data/countries.json</code> z bazy world-countries: 193 państwa ONZ, Watykan i Palestyna, polskie nazwy z poprawkami, slugi i kontynenty. Bez parametrów.</p>
+
+  <h4>npm run earth / npm run globes (scripts/build-earth.mjs)</h4>
+  <p>Z <code>scripts/earth-source.jpg</code> (NASA Blue Marble) i granic world-atlas 50m tworzy tekstury Ziemi, mapy identyfikatorów krajów i statyczne rendery globusa dla stron krajów.</p>
+  <table>
+    <tr><th>Parametr</th><th>Wymagany</th><th>Opis</th></tr>
+    <tr><td><code>--globes-only</code></td><td>nie</td><td>Tylko rendery <code>public/img/globes/{iso3}.webp</code> (<code>npm run globes</code>).</td></tr>
+    <tr><td><code>--maps-only</code></td><td>nie</td><td>Tylko tekstury <code>day-*.webp</code>, <code>ids-*.png</code> i <code>ids.json</code>.</td></tr>
+    <tr><td><code>--only=ISL</code></td><td>nie</td><td>Rendery globusów tylko dla wskazanych krajów.</td></tr>
+  </table>
+
+  <h4>npm run hero (scripts/hero-cutout.mjs)</h4>
+  <p>Wycina pierwszy plan ze zdjęcia hero (wykrywanie linii nieba kolumna po kolumnie), dorysowuje niebo i zapisuje warstwy tła i pierwszego planu w trzech szerokościach oraz rozmyty podgląd.</p>
+  <table>
+    <tr><th>Parametr</th><th>Wymagany</th><th>Opis</th></tr>
+    <tr><td><code>--input</code></td><td>nie</td><td>Plik źródłowy, domyślnie <code>scripts/hero-source.jpg</code>.</td></tr>
+    <tr><td><code>--out</code></td><td>nie</td><td>Katalog wyjściowy, domyślnie <code>public/img/hero</code>.</td></tr>
+    <tr><td><code>--width</code></td><td>nie</td><td>Szerokość robocza, domyślnie 2560.</td></tr>
+    <tr><td><code>--threshold</code></td><td>nie</td><td>Czułość wykrywania nieba, domyślnie 28.</td></tr>
+    <tr><td><code>--extend</code></td><td>nie</td><td>Ile pikseli nieba dorysować nad zdjęciem, domyślnie 400.</td></tr>
+    <tr><td><code>--floor</code></td><td>nie</td><td>Ręczne poprawki linii nieba <code>x0:x1:y</code> rozdzielone przecinkami: w pasie od <code>x0</code> do <code>x1</code> (ułamki szerokości) niebo sięga co najmniej do wysokości <code>y</code> (ułamek wysokości). Skrypt npm używa <code>0:0.047:0.665</code>.</td></tr>
+    <tr><td><code>--sizes</code></td><td>nie</td><td>Szerokości wyjściowe, domyślnie <code>960,1600,2200</code>.</td></tr>
+  </table>
+  <p class="note">Po zmianie zdjęcia hero trzeba zaktualizować proporcje w <code>Hero.astro</code> (<code>aspect-ratio</code>, <code>--stage-w</code>) i pozycję tytułu, a potem zrobić nowy <code>public/og/default.jpg</code>.</p>
+</section>
+
+<section id="howto" class="page">
+  <h2>Dodanie kraju krok po kroku</h2>
+  <table>
+    <tr><th>Krok</th><th>Co zrobić</th></tr>
+    <tr><td>1</td><td>Znajdź kraj w <code>src/data/countries.json</code> i odczytaj <code>code</code> oraz <code>slug</code>.</td></tr>
+    <tr><td>2</td><td>Utwórz <code>src/content/kraje/{slug}.md</code> z frontmatterem (sekcja „Model treści”) i relacją.</td></tr>
+    <tr><td>3</td><td><code>npm run photos -- --only={ISO3}</code>. Obejrzyj pliki w <code>src/assets/photos/{iso3}/</code>; złe wyklucz w <code>scripts/photo-overrides.json</code> i powtórz.</td></tr>
+    <tr><td>4</td><td>Dopisz polskie opisy nowych zdjęć do <code>src/data/alts.json</code>.</td></tr>
+    <tr><td>5</td><td><code>npm run globes -- --only={ISO3}</code> tworzy render globusa do tabeli faktów.</td></tr>
+    <tr><td>6</td><td><code>npx astro check</code> i <code>npm run build</code>. Licznik, listy, kontynenty, kolekcje, oba globusy, mapa strony i strona źródeł aktualizują się same.</td></tr>
+  </table>
+<pre>npm run photos -- --only=BTN
+npm run globes -- --only=BTN
+npx astro check
+npm run build</pre>
+  <p class="note">Jeśli nowy kraj ma być „ostatnią pieczątką”, wystarczy, że ma najpóźniejszą datę <code>visited</code>. Następny cel podróży pokazywany na stronie ustawia się w <code>site.next</code> w <code>src/data/meta.ts</code>.</p>
+</section>
+
+</main>
+</body>
+</html>

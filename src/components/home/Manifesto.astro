@@ -1,0 +1,133 @@
+---
+import { number, plural } from '../../lib/data';
+
+interface Props {
+  stats: { count: number; total: number; continents: number; days: number; years: number; since: number; km: number; percent: number };
+}
+
+const { stats } = Astro.props;
+const text = `Mam jeden paszport, jeden plecak i listę ${stats.total} krajów. Od ${stats.since} roku skreślam je po kolei, bez biur podróży i bez pośpiechu. Ta strona to mój dziennik: krajobrazy, ludzie i wszystko, co zostaje w głowie, kiedy samolot już wyląduje.`;
+const items = [
+  { value: stats.count, label: `${plural(stats.count, 'kraj', 'kraje', 'krajów')} z ${stats.total}` },
+  { value: stats.continents, label: plural(stats.continents, 'odwiedzony kontynent', 'odwiedzone kontynenty', 'odwiedzonych kontynentów') },
+  { value: stats.years, label: 'lat w drodze' },
+  { value: stats.days, label: 'dni poza domem' },
+  { value: stats.km, label: 'km, licząc w linii prostej' },
+];
+---
+
+<section class="manifesto section" aria-label="O projekcie w skrócie">
+  <div class="wrap">
+    <p class="manifesto-text" data-words>
+      {text.split(' ').map((w) => <span class="w">{w} </span>)}
+    </p>
+    <p class="manifesto-note hand" data-reveal>tak, wszystkich. nawet tych, o których nikt nie pamięta</p>
+
+    <dl class="stats">
+      {items.map((item) => (
+        <div class="stat" data-reveal>
+          <dt>{item.label}</dt>
+          <dd data-count={item.value}>{number(item.value)}</dd>
+        </div>
+      ))}
+    </dl>
+  </div>
+</section>
+
+<style>
+  .manifesto {
+    position: relative;
+  }
+
+  .manifesto-text {
+    max-width: 22ch;
+    font-size: clamp(2rem, 4.6vw, 4.6rem);
+    font-weight: 600;
+    font-stretch: 85%;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  .w {
+    display: inline;
+  }
+
+  :global(.js) .manifesto-text .w {
+    opacity: 0.16;
+  }
+
+  .manifesto-note {
+    margin-top: 28px;
+    margin-left: clamp(0px, 18vw, 320px);
+    max-width: 26ch;
+    font-size: clamp(22px, 2.2vw, 30px);
+    line-height: 1.2;
+    color: var(--accent);
+    transform: rotate(-3deg);
+  }
+
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 24px;
+    margin: clamp(72px, 9vw, 140px) 0 0;
+    padding-top: 28px;
+    border-top: 1px solid var(--line);
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column-reverse;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .stat dd {
+    margin: 0;
+    font-size: clamp(2.6rem, 4.4vw, 4.4rem);
+    font-weight: 800;
+    font-stretch: 75%;
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .stat:first-child dd {
+    color: var(--accent);
+  }
+
+  .stat dt {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 900px) {
+    .stats {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 36px;
+    }
+
+    .stat:last-child {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
+
+<script>
+  import { gsap, reduced } from '../../scripts/motion';
+
+  document.querySelectorAll<HTMLElement>('[data-words]').forEach((el) => {
+    const words = el.querySelectorAll('.w');
+    if (reduced) {
+      gsap.set(words, { opacity: 1 });
+      return;
+    }
+    gsap.to(words, {
+      opacity: 1,
+      ease: 'none',
+      stagger: 0.1,
+      scrollTrigger: { trigger: el, start: 'top 80%', end: 'bottom 45%', scrub: true },
+    });
+  });
+</script>

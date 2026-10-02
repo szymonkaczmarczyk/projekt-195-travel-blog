@@ -1,0 +1,129 @@
+---
+import { Image } from 'astro:assets';
+import type { Photo } from '../lib/data';
+
+interface Props {
+  title: string;
+  lead?: string;
+  note?: string;
+  photos?: Photo[];
+}
+
+const { title, lead, note, photos = [] } = Astro.props;
+const stack = photos.filter(Boolean).slice(0, 3);
+const longest = Math.max(...title.split(/\s+/).map((w) => w.length));
+---
+
+<header class="ph">
+  <div class="wrap ph-grid">
+    <div class="ph-text">
+      <h1 class="display ph-title" style={`--len:${longest}`} data-split>{title}</h1>
+      {note && <p class="ph-note hand" data-reveal>{note}</p>}
+      {lead && <p class="ph-lead" data-reveal>{lead}</p>}
+      <slot />
+    </div>
+    {stack.length > 0 && (
+      <div class="ph-stack">
+        {stack.map((p, i) => (
+          <div class={`ph-photo ph-photo-${i}`} data-reveal>
+            <Image src={p.src} alt={p.alt} widths={[400, 800]} sizes="(max-width: 900px) 40vw, 18vw" quality={72} loading={i === 0 ? 'eager' : 'lazy'} />
+          </div>
+        ))}
+      </div>
+    )}
+  </div>
+</header>
+
+<style>
+  .ph {
+    padding-top: calc(var(--header-h) + clamp(48px, 8vw, 120px));
+    padding-bottom: clamp(48px, 7vw, 100px);
+    overflow: hidden;
+  }
+
+  .ph-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    align-items: center;
+    gap: 48px;
+  }
+
+  .ph-text {
+    container-type: inline-size;
+    min-width: 0;
+  }
+
+  .ph-title {
+    font-size: min(9.5rem, 140cqi / var(--len), 9vw + 1rem);
+    overflow-wrap: normal;
+    hyphens: none;
+  }
+
+  .ph-note {
+    margin-top: 18px;
+    font-size: clamp(22px, 2.4vw, 32px);
+    color: var(--accent);
+    transform: rotate(-2deg);
+    transform-origin: left;
+  }
+
+  .ph-lead {
+    max-width: 52ch;
+    margin-top: 24px;
+    font-size: clamp(17px, 1.4vw, 20px);
+    color: var(--muted);
+  }
+
+  .ph-stack {
+    position: relative;
+    height: clamp(300px, 34vw, 480px);
+  }
+
+  .ph-photo {
+    position: absolute;
+    width: 56%;
+    aspect-ratio: 4 / 5;
+    padding: 8px;
+    background: var(--paper);
+    border-radius: 4px;
+    box-shadow: 0 24px 60px rgb(0 0 0 / 0.45);
+  }
+
+  .ph-photo :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ph-photo-0 {
+    left: 0;
+    top: 6%;
+    rotate: -6deg;
+    z-index: 2;
+  }
+
+  .ph-photo-1 {
+    right: 0;
+    top: 0;
+    rotate: 5deg;
+  }
+
+  .ph-photo-2 {
+    left: 26%;
+    bottom: -4%;
+    rotate: 2deg;
+    z-index: 3;
+    width: 48%;
+  }
+
+  @media (max-width: 900px) {
+    .ph-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .ph-stack {
+      height: 300px;
+      max-width: 420px;
+    }
+  }
+</style>

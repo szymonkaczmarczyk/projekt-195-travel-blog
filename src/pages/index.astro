@@ -1,0 +1,32 @@
+---
+import Base from '../layouts/Base.astro';
+import Hero from '../components/home/Hero.astro';
+import Intro from '../components/home/Intro.astro';
+import Manifesto from '../components/home/Manifesto.astro';
+import Recent from '../components/home/Recent.astro';
+import Globe from '../components/home/Globe.astro';
+import TopList from '../components/home/TopList.astro';
+import Continents from '../components/home/Continents.astro';
+import Collections from '../components/home/Collections.astro';
+import { getVisits, inCollection, stats, travelled } from '../lib/data';
+
+const visits = await getVisits();
+const trips = travelled(visits);
+const heroSizes = '(max-aspect-ratio: 1456/1000) 146svh, 100vw';
+const set = (layer: string) => [960, 1600, 2200].map((w) => `/img/hero/${layer}-${w}.webp ${w}w`).join(', ');
+---
+
+<Base headerTone="overlay" description={`Blog podróżniczy z misją odwiedzenia wszystkich 195 krajów świata. ${visits.length} już za mną: krajobrazy, trasy, zdjęcia i notatki z drogi.`}>
+  <Fragment slot="head">
+    <link rel="preload" as="image" imagesrcset={set('bg')} imagesizes={heroSizes} fetchpriority="high" />
+    <link rel="preload" as="image" imagesrcset={set('fg')} imagesizes={heroSizes} fetchpriority="high" />
+  </Fragment>
+  <Hero count={visits.length} latest={trips[0]} />
+  <Intro />
+  <Manifesto stats={stats(visits)} />
+  <Recent visits={trips.slice(0, 7)} />
+  <Globe visits={visits} />
+  <TopList visits={inCollection(trips, 'najlepsze')} />
+  <Continents visits={visits} />
+  <Collections visits={visits} />
+</Base>

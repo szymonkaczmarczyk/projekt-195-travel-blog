@@ -1,0 +1,120 @@
+---
+import Base from '../layouts/Base.astro';
+import PageHead from '../components/PageHead.astro';
+import { getVisits, plural } from '../lib/data';
+
+const visits = (await getVisits()).slice().sort((a, b) => a.name.localeCompare(b.name, 'pl'));
+const total = visits.reduce((s, v) => s + v.photos.length, 0) + 2;
+---
+
+<Base title="Źródła zdjęć" description="Autorzy, licencje i linki do oryginałów wszystkich zdjęć z Wikimedia Commons użytych na stronie Projektu 195." noindex>
+  <PageHead
+    title="Źródła zdjęć"
+    note={`${total} ${plural(total, 'zdjęcie', 'zdjęcia', 'zdjęć')} z Wikimedia Commons`}
+    lead="Dziękuję autorom, którzy udostępniają swoje zdjęcia na wolnych licencjach. Poniżej jest pełna lista autorów i licencji z linkami do oryginałów."
+  />
+
+  <section class="wrap sources">
+    <article class="source source--hero">
+      <h2>Strona główna i globus</h2>
+      <ul>
+        <li>
+          <a href="https://commons.wikimedia.org/wiki/File:Frea_pass_Sella_group_Pisciadu_Dolomites_South_Tyrol.jpg" target="_blank" rel="noopener">Frea pass Sella group Pisciadu Dolomites South Tyrol</a>
+          <span>Wolfgang Moroder, <a href="https://creativecommons.org/licenses/by-sa/3.0" target="_blank" rel="noopener">CC BY-SA 3.0</a>. Zmiany: kadrowanie, dorysowane niebo, rozdzielenie planów.</span>
+        </li>
+        <li>
+          <a href="https://visibleearth.nasa.gov/images/73909/december-blue-marble-next-generation-w-topography-and-bathymetry" target="_blank" rel="noopener">Blue Marble: Next Generation, grudzień 2004</a>
+          <span>NASA Earth Observatory, domena publiczna. Tekstura globusa i rendery krajów.</span>
+        </li>
+        <li>
+          <a href="https://commons.wikimedia.org/wiki/File:Clouds_in_the_stratosphere_(Unsplash).jpg" target="_blank" rel="noopener">Clouds in the stratosphere (Unsplash)</a>
+          <span><a href="https://unsplash.com/@kaushikpanchal" target="_blank" rel="noopener">Kaushik Panchal</a>, <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0</a>. Chmury w animacji powitalnej.</span>
+        </li>
+      </ul>
+    </article>
+    <article class="source source--hero">
+      <h2>Dane o krajach i mapy</h2>
+      <ul>
+        <li>
+          <a href="https://github.com/mledoze/countries" target="_blank" rel="noopener">world-countries (mledoze/countries)</a>
+          <span>Polskie nazwy, kody, współrzędne i powierzchnie krajów, <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener">ODbL 1.0</a>. Pochodna lista krajów używana na stronie jest udostępniana na tej samej licencji.</span>
+        </li>
+        <li>
+          <a href="https://github.com/topojson/world-atlas" target="_blank" rel="noopener">world-atlas</a>
+          <span>Granice państw z <a href="https://www.naturalearthdata.com/" target="_blank" rel="noopener">Natural Earth</a>, domena publiczna. Globusy i mapy identyfikatorów krajów.</span>
+        </li>
+      </ul>
+    </article>
+    {visits.map((v) => (
+      <article class="source">
+        <h2><a href={`/kraje/${v.slug}/`}>{v.name}</a></h2>
+        <ul>
+          {v.photos.map((p) => (
+            <li>
+              <a href={p.source} target="_blank" rel="noopener">{p.title}</a>
+              <span>
+                {p.authorUrl ? <a href={p.authorUrl} target="_blank" rel="noopener">{p.author}</a> : p.author},
+                {' '}
+                {p.licenseUrl ? <a href={p.licenseUrl} target="_blank" rel="noopener">{p.license}</a> : p.license}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </article>
+    ))}
+  </section>
+</Base>
+
+<style>
+  .sources {
+    columns: 3 320px;
+    column-gap: 48px;
+    padding-bottom: clamp(80px, 10vw, 140px);
+  }
+
+  .source {
+    break-inside: avoid;
+    padding: 20px 0 24px;
+    border-top: 1px solid var(--line);
+  }
+
+  .source h2 {
+    margin-bottom: 10px;
+    font-size: 20px;
+    font-weight: 700;
+    font-stretch: 85%;
+  }
+
+  .source h2 a:hover {
+    color: var(--accent);
+  }
+
+  .source li {
+    display: grid;
+    gap: 2px;
+    font-size: 14px;
+    line-height: 1.45;
+  }
+
+  .source li + li {
+    margin-top: 10px;
+  }
+
+  .source li > a {
+    color: var(--text);
+    text-decoration: underline;
+    text-decoration-color: var(--line-strong);
+    text-underline-offset: 3px;
+  }
+
+  .source span {
+    color: var(--faint);
+    font-size: 13px;
+  }
+
+  .source span a {
+    color: var(--muted);
+    text-decoration: underline;
+    text-decoration-color: var(--line);
+  }
+</style>

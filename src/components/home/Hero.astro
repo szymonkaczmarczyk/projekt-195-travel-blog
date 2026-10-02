@@ -1,0 +1,325 @@
+---
+import Icon from '../Icon.astro';
+import { site } from '../../data/meta';
+import type { Visit } from '../../lib/data';
+import { monthYear } from '../../lib/data';
+
+interface Props {
+  count: number;
+  latest?: Visit;
+}
+
+const { count, latest } = Astro.props;
+const widths = [960, 1600, 2200];
+const srcset = (layer: 'bg' | 'fg') => widths.map((w) => `/img/hero/${layer}-${w}.webp ${w}w`).join(', ');
+const sizes = '(max-aspect-ratio: 1456/1000) 146svh, 100vw';
+---
+
+<section class="hero" data-hero data-visited={count} aria-labelledby="hero-title">
+  <div class="hero-stage" data-hero-stage>
+    <img class="hero-layer hero-bg" data-hero-bg src="/img/hero/bg-1600.webp" srcset={srcset('bg')} sizes={sizes} alt="" width="2560" height="1758" fetchpriority="high" />
+    <div class="hero-title-pos">
+      <h1 class="hero-title display" id="hero-title" data-hero-title>
+        <span class="sr-only">{site.name}: </span>
+        <span class="hero-word">Złapać</span>
+        <span class="hero-word">świat</span>
+      </h1>
+    </div>
+    <img class="hero-layer hero-fg" data-hero-fg src="/img/hero/fg-1600.webp" srcset={srcset('fg')} sizes={sizes} alt="Grupa Sella w Dolomitach widziana z przełęczy Gardena" width="2560" height="1758" fetchpriority="high" />
+  </div>
+
+  <div class="hero-shade" aria-hidden="true"></div>
+
+  <div class="hero-bottom wrap" data-hero-bottom>
+    <div class="hero-copy">
+      <p class="hero-note hand">{count} z {site.total}, reszta w drodze</p>
+      <p class="hero-lead">Dziennik z próby odwiedzenia wszystkich krajów świata. Bez pośpiechu, z plecakiem i aparatem.</p>
+      <a class="btn btn--light" href="/kraje/">
+        Zobacz kraje
+        <Icon name="arrowRight" />
+      </a>
+    </div>
+    {latest && (
+      <a class="hero-latest" href={`/kraje/${latest.slug}/`}>
+        <span class="hero-latest-label">Ostatnia pieczątka</span>
+        <span class="hero-latest-name">
+          {latest.name}
+          <Icon name="arrowUpRight" size={22} />
+        </span>
+        <span class="hero-latest-date">{monthYear(latest.visited)}</span>
+      </a>
+    )}
+  </div>
+
+</section>
+
+<style>
+  .hero {
+    --stage-w: max(100vw, 145.62svh);
+    --focus: 0.5;
+    position: relative;
+    height: 100svh;
+    min-height: 560px;
+    overflow: hidden;
+    background: #8597a8;
+  }
+
+  .hero-stage {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: var(--stage-w);
+    aspect-ratio: 2560 / 1758;
+    margin-left: calc(var(--stage-w) * var(--focus) * -1);
+    transform-origin: 50% 40%;
+  }
+
+  .hero-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    user-select: none;
+    pointer-events: none;
+  }
+
+  .hero-bg {
+    background: url('/img/hero/bg-blur.webp') center / cover;
+  }
+
+  .hero-title-pos {
+    position: absolute;
+    left: calc(var(--focus) * 100%);
+    bottom: 57.5%;
+    width: 100vw;
+    transform: translateX(-50%);
+    text-align: center;
+  }
+
+  .hero-title {
+    display: inline-flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    column-gap: 0.18em;
+    font-size: min(13.6vw, 27svh);
+    line-height: 0.8;
+    color: #f4f1ea;
+    text-shadow: 0 0.02em 0.12em rgb(30 40 52 / 0.18);
+    will-change: transform;
+  }
+
+  .hero-word {
+    display: inline-block;
+  }
+
+  .hero-shade {
+    position: absolute;
+    inset: auto 0 0;
+    height: 46%;
+    background: linear-gradient(to bottom, rgb(13 17 16 / 0) 0%, rgb(13 17 16 / 0.55) 55%, var(--bg) 100%);
+    pointer-events: none;
+  }
+
+  .hero-bottom {
+    position: absolute;
+    inset: auto 0 0;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    padding-bottom: clamp(28px, 5vh, 56px);
+  }
+
+  .hero-copy {
+    max-width: 440px;
+  }
+
+  .hero-note {
+    font-size: clamp(20px, 2vw, 26px);
+    color: var(--accent);
+    transform: rotate(-3deg);
+    transform-origin: left;
+    margin-bottom: 10px;
+  }
+
+  .hero-lead {
+    font-size: clamp(16px, 1.35vw, 19px);
+    line-height: 1.5;
+    color: var(--text);
+    margin-bottom: 22px;
+  }
+
+  .hero-latest {
+    display: grid;
+    gap: 2px;
+    text-align: right;
+    justify-items: end;
+  }
+
+  .hero-latest-label {
+    font-size: 13px;
+    color: var(--muted);
+  }
+
+  .hero-latest-name {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: clamp(26px, 2.6vw, 36px);
+    font-weight: 700;
+    font-stretch: 80%;
+    line-height: 1.05;
+  }
+
+  .hero-latest-name :global(svg) {
+    transition: transform 0.5s var(--ease-out);
+  }
+
+  .hero-latest:hover .hero-latest-name :global(svg) {
+    transform: translate(3px, -3px);
+  }
+
+  .hero-latest-date {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  @media (max-aspect-ratio: 1456/1000) {
+    .hero {
+      --focus: 0.6;
+    }
+  }
+
+  @media (max-width: 700px) {
+    .hero-title {
+      font-size: min(25vw, 15svh);
+      flex-direction: column;
+      align-items: center;
+      line-height: 0.82;
+    }
+
+    .hero-bottom {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 24px;
+    }
+
+    .hero-latest {
+      display: none;
+    }
+  }
+</style>
+
+<script>
+  import { gsap, ScrollTrigger, SplitText, getLenis, reduced } from '../../scripts/motion';
+
+  const hero = document.querySelector<HTMLElement>('[data-hero]');
+  const intro = document.querySelector<HTMLElement>('[data-intro]');
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const KEY = 'p195-intro-seen';
+
+  function seen() {
+    try {
+      return sessionStorage.getItem(KEY) === '1';
+    } catch {
+      return false;
+    }
+  }
+
+  function markSeen() {
+    try {
+      sessionStorage.setItem(KEY, '1');
+    } catch {}
+  }
+
+  if (hero) {
+    const title = hero.querySelector<HTMLElement>('[data-hero-title]')!;
+    const stage = hero.querySelector<HTMLElement>('[data-hero-stage]')!;
+    const bg = hero.querySelector<HTMLElement>('[data-hero-bg]')!;
+    const fg = hero.querySelector<HTMLElement>('[data-hero-fg]')!;
+    const bottom = hero.querySelector<HTMLElement>('[data-hero-bottom]')!;
+    const lenis = getLenis();
+
+    const images = [bg, fg].map((img) => (img as HTMLImageElement).decode().catch(() => undefined));
+    const ready = Promise.race([Promise.all([...images, document.fonts.ready]), new Promise((r) => setTimeout(r, 4000))]);
+
+    const finishIntro = () => {
+      document.documentElement.classList.add('intro-done');
+      intro?.remove();
+      lenis?.start();
+      markSeen();
+    };
+
+    const titleIn = () => {
+      const split = SplitText.create(title, { type: 'chars', charsClass: 'hero-char' });
+      const tl = gsap.timeline();
+      tl.from(split.chars, { yPercent: 240, duration: 1.6, ease: 'expo.out', stagger: { each: 0.05, from: 'center' } });
+      tl.from(bottom.children, { y: 30, autoAlpha: 0, duration: 1.1, ease: 'expo.out', stagger: 0.1 }, 0.5);
+      return tl;
+    };
+
+    const scrollFx = () => {
+      gsap
+        .timeline({ scrollTrigger: { trigger: hero, start: 'top top', end: 'bottom top', scrub: true } })
+        .to(title, { yPercent: 70, ease: 'none' }, 0)
+        .to(fg, { yPercent: -6, ease: 'none' }, 0)
+        .to(bg, { yPercent: 10, ease: 'none' }, 0)
+        .to(bottom, { autoAlpha: 0, y: -40, ease: 'none' }, 0);
+    };
+
+    if (reduced) {
+      finishIntro();
+    } else if (!intro || seen() || document.documentElement.classList.contains('intro-done')) {
+      finishIntro();
+      ready.then(() => {
+        titleIn();
+        scrollFx();
+      });
+    } else {
+      const sky = intro.querySelector<HTMLElement>('[data-intro-sky]')!;
+      const scene = intro.querySelector<HTMLElement>('[data-intro-scene]')!;
+      const flash = intro.querySelector<HTMLElement>('[data-intro-flash]')!;
+      const veil = intro.querySelector<HTMLElement>('[data-intro-veil]')!;
+      const skyReady = (sky as HTMLImageElement).decode().catch(() => undefined);
+
+      lenis?.stop();
+      gsap.set(header, { autoAlpha: 0 });
+      gsap.set(title, { autoAlpha: 0 });
+      gsap.set(stage, { scale: 1.14, yPercent: 7 });
+
+      const tl = gsap.timeline({ paused: true, onComplete: finishIntro });
+      tl.fromTo(scene, { scale: 0.94 }, { scale: 1, duration: 1.4, ease: 'expo.out' }, 0)
+        .to(sky, { scale: 1.12, xPercent: -1.5, duration: 2.4, ease: 'sine.inOut' }, 0)
+        .to(scene, { scale: 9, duration: 2, ease: 'power3.in' }, 1.2)
+        .to(sky, { scale: 1.5, xPercent: 0, duration: 2, ease: 'power2.in' }, 1.2)
+        .set(scene, { autoAlpha: 0 }, 3.2)
+        .to(sky, { scale: 2.1, yPercent: -14, duration: 1, ease: 'power1.in' }, 3.2)
+        .to(flash, { opacity: 1, duration: 1.05, ease: 'power1.inOut' }, 2.95)
+        .addLabel('reveal', 4.0)
+        .addPause('reveal', () => {
+          ready.then(() => tl.resume());
+        })
+        .set(sky, { autoAlpha: 0 }, 'reveal')
+        .set(intro, { backgroundColor: 'rgba(233, 238, 243, 0)', pointerEvents: 'none' }, 'reveal')
+        .to(stage, { scale: 1, yPercent: 0, duration: 2.6, ease: 'expo.out' }, 'reveal')
+        .fromTo(veil, { autoAlpha: 0, yPercent: 14 }, { autoAlpha: 1, yPercent: 0, duration: 0.7, ease: 'power2.out' }, 'reveal')
+        .to(flash, { opacity: 0, duration: 1.4, ease: 'power2.out' }, 'reveal')
+        .to(veil, { yPercent: -60, duration: 2.6, ease: 'power2.inOut' }, 'reveal+=0.45')
+        .to(veil, { autoAlpha: 0, duration: 1.4, ease: 'power1.in' }, 'reveal+=1.6')
+        .set(title, { autoAlpha: 1 }, 'reveal+=0.5')
+        .add(titleIn(), 'reveal+=0.5')
+        .to(header, { autoAlpha: 1, duration: 0.9 }, 'reveal+=1.1')
+        .add(() => scrollFx(), 'reveal+=1.2');
+
+      Promise.race([skyReady, new Promise((r) => setTimeout(r, 1500))]).then(() => tl.play());
+
+      const skip = () => tl.timeScale(4);
+      intro.addEventListener('click', skip);
+      window.addEventListener('keydown', skip, { once: true });
+      window.addEventListener('wheel', skip, { once: true, passive: true });
+      window.addEventListener('touchstart', skip, { once: true, passive: true });
+    }
+
+    window.addEventListener('load', () => ScrollTrigger.refresh());
+  }
+</script>

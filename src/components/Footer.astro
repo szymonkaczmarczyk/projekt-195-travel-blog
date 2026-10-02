@@ -1,0 +1,181 @@
+---
+import Icon from './Icon.astro';
+import { continents, collectionsMeta, legal, nav, site } from '../data/meta';
+import { getVisits } from '../lib/data';
+
+const visits = await getVisits();
+const latest = visits.find((v) => !v.home);
+const year = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer-top">
+      <p class="footer-lead">
+        Zostało jeszcze <strong>{site.total - visits.length}</strong> krajów.
+        <span class="hand">Lecimy dalej.</span>
+      </p>
+      {latest && (
+        <a class="link-arrow" href={`/kraje/${latest.slug}/`}>
+          Ostatnia pieczątka: {latest.name}
+          <Icon name="arrowRight" />
+        </a>
+      )}
+    </div>
+
+    <div class="footer-cols">
+      <div>
+        <h2 class="footer-h">Strony</h2>
+        <ul>
+          {nav.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-h">Kontynenty</h2>
+        <ul>
+          {continents.map((c) => (
+            <li><a href={`/kontynenty/${c.key}/`}>{c.name}</a></li>
+          ))}
+        </ul>
+      </div>
+      <div>
+        <h2 class="footer-h">Kolekcje</h2>
+        <ul>
+          {collectionsMeta.map((c) => (
+            <li><a href={`/kolekcje/${c.key}/`}>{c.name}</a></li>
+          ))}
+        </ul>
+      </div>
+    </div>
+
+    <p class="footer-mark" aria-hidden="true">195</p>
+
+    <div class="footer-bottom">
+      <p>© {year} {site.name}: {site.claim}</p>
+      <ul class="footer-legal">
+        {legal.map((item) => (
+          <li><a href={item.href}>{item.label}</a></li>
+        ))}
+      </ul>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .footer {
+    position: relative;
+    padding-top: clamp(72px, 10vw, 140px);
+    padding-bottom: calc(28px + env(safe-area-inset-bottom));
+    background: var(--bg-2);
+    border-top: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .footer-top {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px 48px;
+    padding-bottom: clamp(48px, 6vw, 80px);
+  }
+
+  .footer-lead {
+    max-width: 18ch;
+    font-size: clamp(2rem, 4.4vw, 4rem);
+    font-weight: 700;
+    font-stretch: 85%;
+    line-height: 1;
+    letter-spacing: -0.015em;
+  }
+
+  .footer-lead strong {
+    color: var(--accent);
+  }
+
+  .footer-lead .hand {
+    display: block;
+    margin-top: 12px;
+    font-size: 0.6em;
+    color: var(--muted);
+    transform: rotate(-2deg);
+    transform-origin: left;
+  }
+
+  .footer-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 32px;
+    padding-block: 40px;
+    border-top: 1px solid var(--line);
+  }
+
+  .footer-h {
+    margin-bottom: 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--faint);
+  }
+
+  .footer-cols li + li {
+    margin-top: 6px;
+  }
+
+  .footer-cols a {
+    color: var(--muted);
+    transition: color 0.3s;
+  }
+
+  .footer-cols a:hover {
+    color: var(--text);
+  }
+
+  .footer-mark {
+    font-weight: 800;
+    font-stretch: 75%;
+    font-size: clamp(9rem, 40vw, 34rem);
+    line-height: 0.78;
+    letter-spacing: -0.04em;
+    color: var(--bg-3);
+    margin-top: 24px;
+    margin-left: -0.04em;
+    user-select: none;
+  }
+
+  .footer-bottom {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 8px 24px;
+    padding-top: 24px;
+    font-size: 14px;
+    color: var(--faint);
+  }
+
+  .footer-legal {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 24px;
+  }
+
+  .footer-legal a {
+    color: var(--faint);
+    transition: color 0.3s;
+  }
+
+  .footer-legal a:hover {
+    color: var(--text);
+  }
+
+  @media (max-width: 640px) {
+    .footer-cols {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .footer-cols > div:first-child {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
