@@ -246,8 +246,12 @@ docs/
 - Build generuje 124 strony, około 1650 wariantów zdjęć i 104 kadry Open Graph. Katalog `dist/` ma około 270 MB,
   prawie w całości są to warianty zdjęć. Mieści się to w limitach popularnych hostingów statycznych.
 
-## Zdjęcia, dane i licencje
+## Licencje
 
+- **Kod**: licencja MIT, pełny tekst w [`LICENSE`](LICENSE). Obejmuje kod źródłowy, style, skrypty i konfigurację.
+  Nie obejmuje treści i materiałów wymienionych niżej, które mają własne licencje.
+- **Relacje**: teksty w `src/content/kraje/` i opisy na stronach należą do autora, wszystkie prawa zastrzeżone.
+  Krótkie cytaty z podaniem źródła są w porządku, kopiowanie całych relacji wymaga zgody.
 - **Zdjęcia krajów**: 327 plików z Wikimedia Commons na licencjach CC BY, CC BY-SA, CC0 i z domeny publicznej.
   CC BY i CC BY-SA wymagają podania autora, licencji i źródła, dlatego strona `/zrodla-zdjec/` musi pozostać
   dostępna (link jest w regulaminie). Generuje się sama z `src/data/photos.json`.
@@ -261,8 +265,8 @@ docs/
   **GSAP**: darmowa licencja standardowa.
 - **Treść**: podróżnik i relacje są wymyślone, miejsca i pory roku są prawdziwe.
 
-Kod nie ma jeszcze pliku `LICENSE`. Jeśli repozytorium ma być publiczne i do ponownego użycia, dodaj licencję
-(np. MIT dla kodu). Zdjęcia i dane zachowują swoje licencje niezależnie od niej.
+Jeśli używasz tego repozytorium jako szablonu, podmień relacje na własne i zachowaj informacje o autorach zdjęć
+(stronę `/zrodla-zdjec/`) albo zastąp zdjęcia swoimi.
 
 ## Dokumentacja
 
